@@ -3,6 +3,7 @@ import Header from '../components/Header'
 import Navbar from '../components/Navbar'
 import { FaSearch } from 'react-icons/fa'
 import { supabase } from '../supabaseClient'
+import { Link } from 'react-router-dom'
 
 const List = () => {
     const [pelangganList, setPelangganList] = useState([]);
@@ -25,6 +26,25 @@ const List = () => {
 
         fetchPelanggan();
     }, [])
+
+    const handleDelete = async (pelangganId) => {
+        const isConfirm = window.confirm('Apakah anda yakin ingin menghapus pelanggan ini?');
+        if (!isConfirm) return;
+
+        try {
+            const { error } = await supabase
+                .from('pelanggan')
+                .delete()
+                .eq('id', pelangganId);
+
+            if (error) throw error;
+
+            setPelangganList(pelangganList.filter(p => p.id !== pelangganId));
+            alert('Data Pelanggan Berhasil Dihapus!')
+        } catch (error) {
+            alert('Error menghapus data: ' + error.message);
+        }
+    }
 
 
     return (
@@ -55,6 +75,19 @@ const List = () => {
                                             <h2 className='font-medium text-xs sm:text-xl'>{pelanggan.nama_pelanggan}</h2>
                                         </div>
                                         <h5 className='text-gray-600 text-xs text-center sm:text-left'>{pelanggan.alamat}</h5>
+                                    </div>
+                                    <div className="flex justify-center sm:justify-end gap-4 mt-4 sm:mt-0">
+                                        <Link to={`/edit-pelanggan/${pelanggan.id}`}>
+                                            <button className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded">
+                                                Update
+                                            </button>
+                                        </Link>
+                                        <button
+                                            onClick={() => handleDelete(pelanggan.id)}
+                                            className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
+                                        >
+                                            Delete
+                                        </button>
                                     </div>
                                 </div>
                             ))

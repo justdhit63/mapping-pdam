@@ -7,6 +7,7 @@ import List from './pages/List'
 import Analytic from './pages/Analytic'
 import Edit from './pages/Edit'
 import Login from './pages/Login'
+import EditForm from './pages/EditForm'
 
 function App() {
 
@@ -16,6 +17,7 @@ function App() {
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/peta" element={<Map />} />
       <Route path="/input-data" element={<Form />} />
+      <Route path="/edit-pelanggan/:id" element={<EditForm />} />
       <Route path="/daftar-pelanggan" element={<List />} />
       <Route path="/analitik" element={<Analytic />} />
       <Route path="/edit-profile" element={<Edit />} />

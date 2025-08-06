@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { useNavigate } from 'react-router-dom'
 
@@ -7,6 +7,16 @@ const Login = () => {
     const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false)
     const navigate = useNavigate();
+
+    useEffect(() => {
+      const checkSession = async () => {
+        const {data: {session}} = await supabase.auth.getSession();
+        if (session) navigate('/dashboard', {replace: true});
+      };
+    
+      checkSession();
+    }, [navigate]);
+    
 
     const handleLogin = async (e) => {
         e.preventDefault();

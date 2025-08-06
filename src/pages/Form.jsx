@@ -4,6 +4,7 @@ import Header from '../components/Header';
 import { FaFloppyDisk } from 'react-icons/fa6';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
+import MapPicker from '../components/MapPicker';
 
 const Form = () => {
     const [formData, setFormData] = useState({
@@ -13,11 +14,12 @@ const Form = () => {
         alamat: '',
         jumlah_jiwa: '',
         jenis_meter: '',
-        tanggal_pemasanga: '',
-        longtitude: '',
+        tanggal_pemasangan: '',
+        longitude: '',
         latitude: '',
     });
 
+    const [isSearching, setIsSearching] = useState(false)
     const [file, setFile] = useState(null); // State khusus untuk file
     const [uploading, setUploading] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -102,8 +104,8 @@ const Form = () => {
                 alamat: '',
                 jumlah_jiwa: '',
                 jenis_meter: '',
-                tanggal_pemasanga: '',
-                longtitude: '',
+                tanggal_pemasangan: '',
+                longitude: '',
                 latitude: '',
             });
 
@@ -129,13 +131,55 @@ const Form = () => {
         //         alamat: '',
         //         jumlah_jiwa: '',
         //         jenis_meter: '',
-        //         tanggal_pemasanga: '',
-        //         longtitude: '',
+        //         tanggal_pemasangan: '',
+        //         longitude: '',
         //         latitude: '',
         //     });
         // }
         // setLoading(false);
     }
+
+    const handleLocationSelect = (location) => {
+        setFormData(prevData => ({
+            ...prevData,
+            latitude: location.latitude,
+            longitude: location.longitude,
+            alamat: location.alamat
+        }));
+    };
+
+    const handleAddressSearch = async () => {
+        if (!formData.alamat) {
+            alert('Silakan masukkan alamat terlebih dahulu.');
+            return;
+        }
+        setIsSearching(true);
+        try {
+            // Gunakan encodeURIComponent untuk menangani spasi dan karakter khusus
+            const query = encodeURIComponent(formData.alamat);
+            const response = await fetch(
+                `https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`
+            );
+            const data = await response.json();
+
+            if (data && data.length > 0) {
+                const { lat, lon, display_name } = data[0];
+                setFormData(prevData => ({
+                    ...prevData,
+                    latitude: parseFloat(lat),
+                    longitude: parseFloat(lon),
+                    alamat: display_name, // Update alamat dengan hasil dari API agar lebih standar
+                }));
+            } else {
+                alert('Alamat tidak ditemukan. Coba gunakan kata kunci yang lebih spesifik.');
+            }
+        } catch (error) {
+            console.error('Gagal mencari alamat:', error);
+            alert('Terjadi kesalahan saat mencari alamat.');
+        } finally {
+            setIsSearching(false);
+        }
+    };
 
     return (
         <>
@@ -185,16 +229,29 @@ const Form = () => {
                                 />
                             </div>
                         </div>
+                        <MapPicker
+                            onLocationSelect={handleLocationSelect}
+                            latitude={formData.latitude}
+                            longitude={formData.longitude}
+                        />
                         <h1 className='mb-2'>Alamat</h1>
                         <textarea
                             name="alamat"
                             id="alamat"
                             value={formData.alamat}
                             onChange={handleChange}
-                            placeholder='Alamat'
+                            placeholder='Ketik alamat lalu, klik cari alamat'
                             className='border w-full border-blue-400 px-4 py-2 rounded-lg h-40 shadow-md mb-4'
                             required
                         ></textarea>
+                        <button
+                            type="button"
+                            onClick={handleAddressSearch}
+                            disabled={isSearching}
+                            className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg shadow-md h-24 disabled:bg-gray-400"
+                        >
+                            {isSearching ? 'Mencari...' : 'Cari Alamat'}
+                        </button>
                         <div className="sm:flex gap-4 mb-4">
                             <div className="w-full shadow-md">
                                 <h1 className='mb-2'>Jumlah Jiwa</h1>
@@ -223,8 +280,8 @@ const Form = () => {
                                 <h1 className='mb-2'>Tanggal Pemasangan</h1>
                                 <input
                                     type="date"
-                                    name="tanggal_pemasanga"
-                                    value={formData.tanggal_pemasanga}
+                                    name="tanggal_pemasangan"
+                                    value={formData.tanggal_pemasangan}
                                     onChange={handleChange}
                                     className='border w-full border-blue-400 px-4 py-2 rounded-lg'
                                     required
@@ -234,14 +291,15 @@ const Form = () => {
                         <h1 className="mb-2">Lokasi Pemasangan</h1>
                         <div className="sm:flex gap-4 mb-4 p-4 border border-gray-200 shadow-sm rounded-lg">
                             <div className="w-full shadow-md">
-                                <h1 className='mb-2'>Longtitude</h1>
+                                <h1 className='mb-2'>longitude</h1>
                                 <input
                                     type="text"
-                                    name="longtitude"
-                                    value={formData.longtitude}
+                                    name="longitude"
+                                    value={formData.longitude}
                                     onChange={handleChange}
                                     className='border w-full border-blue-400 px-4 py-2 rounded-lg'
                                     placeholder=''
+                                    readOnly
                                     required
                                 />
                             </div>
@@ -254,6 +312,7 @@ const Form = () => {
                                     onChange={handleChange}
                                     className='border w-full border-blue-400 px-4 py-2 rounded-lg'
                                     placeholder=''
+                                    readOnly
                                     required
                                 />
                             </div>

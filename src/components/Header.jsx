@@ -19,7 +19,9 @@ const Header = () => {
     }, []);
 
     const handleLogout = async () => {
+        const isConfirm = window.confirm('Apakah anda yakin akan keluar?');
         const { error } = await supabase.auth.signOut();
+        if (!isConfirm) return;
 
         if (error) {
             console.error('Error Loging Out: ', error.message);

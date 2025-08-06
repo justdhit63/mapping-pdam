@@ -4,7 +4,7 @@ import { FaChartSimple, FaPenToSquare } from "react-icons/fa6";
 import { NavLink } from 'react-router-dom';
 
 const navItems = [
-    { name: 'Dashboard', path: '/', icon: <FaChartPie /> },
+    { name: 'Dashboard', path: '/dashboard', icon: <FaChartPie /> },
     { name: 'Peta', path: '/peta', icon: <FaMap />},
     { name: 'Input Data', path: '/input-data', icon: <FaKeyboard /> },
     { name: 'Daftar Pelanggan', path: '/daftar-pelanggan', icon: <FaList /> },

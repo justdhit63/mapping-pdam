@@ -6,12 +6,14 @@ import Form from './pages/Form'
 import List from './pages/List'
 import Analytic from './pages/Analytic'
 import Edit from './pages/Edit'
+import Login from './pages/Login'
 
 function App() {
 
   return (
     <Routes>
-      <Route path="/" element={<Dashboard />} />
+      <Route path="/" element={<Login />} />
+      <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/peta" element={<Map />} />
       <Route path="/input-data" element={<Form />} />
       <Route path="/daftar-pelanggan" element={<List />} />

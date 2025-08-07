@@ -1,70 +1,69 @@
 import React from 'react'
 import Navbar from '../components/Navbar';
 import Header from '../components/Header';
+import { FaUser, FaUserAlt } from 'react-icons/fa';
 
 const Dashboard = () => {
     return (
         <div>
             <>
-                <Header />
 
                 {/* Main Content */}
-                <div className="bg-gray-200 py-16 px-10">
+                <div className="bg-gray-200 py-24 px-20">
                     <Navbar />
 
-                    <h1 className="text-3xl font-bold mb-8 text-gray-600">Dashboard</h1>
+                    <h1 className="text-3xl font-bold mt-16 mb-8 text-black">Dashboard</h1>
                     {/* Card */}
-                    <div className="grid sm:grid-cols-4 gap-4 text-white mb-8">
-                        <div className="bg-blue-300 p-6 rounded-lg shadow-md">
-                            <h2 className="text-xl font-semibold mb-2">Total Pelanggan</h2>
-                            <p className="text-3xl font-bold">1,234</p>
-                        </div>
-                        <div className="bg-green-300 p-6 rounded-lg shadow-md">
-                            <h2 className="text-xl font-semibold mb-2">Pelanggan Aktif</h2>
-                            <p className="text-3xl font-bold">1,000</p>
-                        </div>
-                        <div className="bg-indigo-300 p-6 rounded-lg shadow-md">
-                            <h2 className="text-xl font-semibold mb-2">Pelanggan Tidak Aktif</h2>
-                            <p className="text-3xl font-bold">234</p>
-                        </div>
-                        <div className="bg-orange-300 p-6 rounded-lg shadow-md">
-                            <h2 className="text-xl font-semibold mb-2">Pelanggan</h2>
-                            <p className="text-3xl font-bold">234</p>
-                        </div>
-                    </div>
-                    <div className="bg-white p-10 rounded-lg shadow-md">
-                        <h3 className='font-medium text-2xl mb-4'>Pelanggan Terbaru</h3>
-                        <div className="py-4 px-8 mb-4 rounded-lg border border-gray-300 shadow-lg sm:flex items-center gap-8">
-                            <img src="./image-break.png" alt="" className='w-20 mx-auto sm:mx-0' />
-                            <div className="">
-                                <div className="flex gap-2 sm:gap-8 items-center mb-2 justify-center">
-                                    <h2 className='font-medium text-xs sm:text-xl'>ID Pelanggan</h2>
-                                    <h2 className='font-medium text-xs sm:text-xl'>|</h2>
-                                    <h2 className='font-medium text-xs sm:text-xl'>Nama Pelanggan</h2>
+                    <div className="grid lg:grid-cols-3 gap-6">
+                        <div className="lg:col-span-2 space-y-6">
+                            <div className="grid sm:grid-cols-3 gap-4 mb-8">
+                                <div className="bg-white p-6 rounded-lg shadow-md">
+                                    <div className="flex items-center justify-between gap-8 mb-4">
+                                        <h2 className="text-xl font-semibold mb-2">Total Pelanggan</h2>
+                                        <div className=" p-2 border border-gray-200 rounded-xl bg-blue-200">
+                                            <FaUser size='24' className='text-blue-400' />
+                                        </div>
+                                    </div>
+                                    <p className="text-3xl font-bold">1,234</p>
                                 </div>
-                                <h5 className='text-gray-600 text-xs text-center sm:text-left'>Alamat Pelanggan</h5>
+                                <div className="bg-white p-6 rounded-lg shadow-md">
+                                    <div className="flex items-center justify-between gap-8 mb-4">
+                                        <h2 className="text-xl font-semibold mb-2">Pelanggan Aktif</h2>
+                                        <div className=" p-2 border border-gray-200 rounded-xl bg-green-200">
+                                            <FaUser size='24' className='text-green-400' />
+                                        </div>
+                                    </div>
+                                    <p className="text-3xl font-bold">1,234</p>
+                                </div>
+                                <div className="bg-white p-6 rounded-lg shadow-md">
+                                    <div className="flex items-center justify-between gap-8 mb-4">
+                                        <h2 className="text-xl font-semibold mb-2">Pelanggan Tidak Aktif</h2>
+                                        <div className=" p-2 border border-gray-200 rounded-xl bg-red-200">
+                                            <FaUser size='24' className='text-red-400' />
+                                        </div>
+                                    </div>
+                                    <p className="text-3xl font-bold">1,234</p>
+                                </div>
                             </div>
+                            <div className="border w-full h-96 rounded-2xl bg-white shadow-lg mb-8 border-gray-300"></div>
                         </div>
-                        <div className="py-4 px-8 mb-4 rounded-lg border border-gray-300 shadow-lg sm:flex items-center gap-8">
-                            <img src="./image-break.png" alt="" className='w-20 mx-auto sm:mx-0' />
-                            <div className="">
-                                <div className="flex gap-2 sm:gap-8 items-center mb-2 justify-center">
-                                    <h2 className='font-medium text-xs sm:text-xl'>ID Pelanggan</h2>
-                                    <h2 className='font-medium text-xs sm:text-xl'>|</h2>
-                                    <h2 className='font-medium text-xs sm:text-xl'>Nama Pelanggan</h2>
+                        <div className="border w-full h-96 rounded-2xl bg-white border-gray-300 shadow-md p-8">
+                            <h1 className="font-medium text-xl mb-4">Pelanggan Terbaru</h1>
+                            <div className="border py-2 px-4 rounded-2xl bg-gray-100 border-gray-200 shadow-inner mb-4">
+                                <div className="flex items-center gap-2 font-bold text-black">
+                                    <h5 className="">ID</h5>
+                                    <h5 className="">|</h5>
+                                    <h5 className="">Nama</h5>
                                 </div>
-                                <h5 className='text-gray-600 text-xs text-center sm:text-left'>Alamat Pelanggan</h5>
+                                <h5 className="text-gray-600">Alamat</h5>
                             </div>
-                        </div>
-                        <div className="py-4 px-8 mb-4 rounded-lg border border-gray-300 shadow-lg sm:flex items-center gap-8">
-                            <img src="./image-break.png" alt="" className='w-20 mx-auto sm:mx-0' />
-                            <div className="">
-                                <div className="flex gap-2 sm:gap-8 items-center mb-2 justify-center">
-                                    <h2 className='font-medium text-xs sm:text-xl'>ID Pelanggan</h2>
-                                    <h2 className='font-medium text-xs sm:text-xl'>|</h2>
-                                    <h2 className='font-medium text-xs sm:text-xl'>Nama Pelanggan</h2>
+                            <div className="border py-2 px-4 rounded-2xl bg-gray-100 border-gray-200 shadow-inner mb-4">
+                                <div className="flex items-center gap-2 font-bold text-black">
+                                    <h5 className="">ID</h5>
+                                    <h5 className="">|</h5>
+                                    <h5 className="">Nama</h5>
                                 </div>
-                                <h5 className='text-gray-600 text-xs text-center sm:text-left'>Alamat Pelanggan</h5>
+                                <h5 className="text-gray-600">Alamat</h5>
                             </div>
                         </div>
                     </div>

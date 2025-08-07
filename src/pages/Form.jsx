@@ -20,8 +20,7 @@ const Form = () => {
     });
 
     const [isSearching, setIsSearching] = useState(false)
-    const [file, setFile] = useState(null); // State khusus untuk file
-    const [uploading, setUploading] = useState(false);
+    const [file, setFile] = useState(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
@@ -115,28 +114,6 @@ const Form = () => {
         } finally {
             setLoading(false);
         }
-
-        // const { error } = await supabase
-        //     .from('pelanggan')
-        //     .insert([formData]);
-
-        // if (error) {
-        //     alert('Error: ' + error.message);
-        // } else {
-        //     alert('Data Berhasil Disimpan!');
-        //     setFormData({
-        //         id_pelanggan: '',
-        //         nama_pelanggan: '',
-        //         no_telpon: '',
-        //         alamat: '',
-        //         jumlah_jiwa: '',
-        //         jenis_meter: '',
-        //         tanggal_pemasangan: '',
-        //         longitude: '',
-        //         latitude: '',
-        //     });
-        // }
-        // setLoading(false);
     }
 
     const handleLocationSelect = (location) => {
@@ -183,12 +160,14 @@ const Form = () => {
 
     return (
         <>
-            <Header />
-            <div className="bg-gray-200 py-16 px-10">
+            <div className="bg-gray-200 pt-24 px-20">
                 <Navbar />
 
                 {/* Form Section */}
-                <div className="bg-white p-8">
+                <div className="pt-16 pb-8">
+                    <h1 className="font-semibold text-2xl">Input Data Pelanggan Baru</h1>
+                </div>
+                <div className="bg-white p-8 rounded-2xl border border-gray-300 shadow-lg">
                     <form onSubmit={handleSubmit} className="flex flex-col justify-center w-full">
                         <div className="sm:flex gap-4 mb-4">
                             <div className="w-full shadow-md">
@@ -248,7 +227,7 @@ const Form = () => {
                             type="button"
                             onClick={handleAddressSearch}
                             disabled={isSearching}
-                            className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg shadow-md h-24 disabled:bg-gray-400"
+                            className="bg-blue-400 hover:bg-blue-500 text-white font-bold py-2 mb-8 px-4 rounded-lg shadow-md disabled:bg-gray-400"
                         >
                             {isSearching ? 'Mencari...' : 'Cari Alamat'}
                         </button>

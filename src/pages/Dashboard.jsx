@@ -9,7 +9,7 @@ const Dashboard = () => {
             <>
 
                 {/* Main Content */}
-                <div className="bg-gray-200 py-24 px-20">
+                <div className="bg-gray-200 py-24 px-10 sm:px-16">
                     <Navbar />
 
                     <h1 className="text-3xl font-bold mt-16 mb-8 text-black">Dashboard</h1>
@@ -19,7 +19,7 @@ const Dashboard = () => {
                             <div className="grid sm:grid-cols-3 gap-4 mb-8">
                                 <div className="bg-white p-6 rounded-lg shadow-md">
                                     <div className="flex items-center justify-between gap-8 mb-4">
-                                        <h2 className="text-xl font-semibold mb-2">Total Pelanggan</h2>
+                                        <h2 className="font-semibold mb-2">Total Pelanggan</h2>
                                         <div className=" p-2 border border-gray-200 rounded-xl bg-blue-200">
                                             <FaUser size='24' className='text-blue-400' />
                                         </div>
@@ -28,7 +28,7 @@ const Dashboard = () => {
                                 </div>
                                 <div className="bg-white p-6 rounded-lg shadow-md">
                                     <div className="flex items-center justify-between gap-8 mb-4">
-                                        <h2 className="text-xl font-semibold mb-2">Pelanggan Aktif</h2>
+                                        <h2 className="font-semibold mb-2">Pelanggan Aktif</h2>
                                         <div className=" p-2 border border-gray-200 rounded-xl bg-green-200">
                                             <FaUser size='24' className='text-green-400' />
                                         </div>
@@ -37,7 +37,7 @@ const Dashboard = () => {
                                 </div>
                                 <div className="bg-white p-6 rounded-lg shadow-md">
                                     <div className="flex items-center justify-between gap-8 mb-4">
-                                        <h2 className="text-xl font-semibold mb-2">Pelanggan Tidak Aktif</h2>
+                                        <h2 className="font-semibold mb-2">Pelanggan Tidak Aktif</h2>
                                         <div className=" p-2 border border-gray-200 rounded-xl bg-red-200">
                                             <FaUser size='24' className='text-red-400' />
                                         </div>

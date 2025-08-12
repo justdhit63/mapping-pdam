@@ -160,7 +160,7 @@ const Form = () => {
 
     return (
         <>
-            <div className="bg-gray-200 pt-24 px-20">
+            <div className="bg-gray-200 pt-24 px-8 sm:px-16">
                 <Navbar />
 
                 {/* Form Section */}
@@ -177,11 +177,10 @@ const Form = () => {
                                     name="id_pelanggan"
                                     value={formData.id_pelanggan}
                                     onChange={handleChange}
-                                    className='border w-1/2 lg:w-3/4 border-blue-400 px-4 py-2 rounded-l-lg'
+                                    className='border w-full border-blue-400 px-4 py-2 rounded-lg'
                                     placeholder='ID'
                                     required
                                 />
-                                <button className='bg-blue-400 w-1/2 lg:w-1/4 border border-blue-400 py-2 px-4 rounded-r-lg text-white'>Generate</button>
                             </div>
                             <div className="w-full shadow-md">
                                 <h1 className='mb-2'>Nama Pelanggan</h1>

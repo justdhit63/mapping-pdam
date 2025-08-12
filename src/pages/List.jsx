@@ -80,15 +80,15 @@ const List = () => {
 
     return (
         <>
-            <div className="bg-gray-200 pt-20 pb-10 px-20 min-h-screen">
+            <div className="bg-gray-200 pt-20 pb-10 px-8 sm:px-16 min-h-screen">
                 <Navbar />
 
                 <div className="my-16">
                     <h1 className="text-2xl font-bold text-gray-900 mb-4">Daftar Pelanggan</h1>
                     <div className="bg-white p-8 rounded-lg shadow-md">
-                        <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
+                        <div className="flex w-full justify-between items-center mb-6">
                             {/* --- FORM PENCARIAN --- */}
-                            <div className="w-full sm:w-1/3 mt-4 sm:mt-0">
+                            <div className="w-full lg:w-1/3 mt-4 sm:mt-0">
                                 <input
                                     type="text"
                                     value={searchTerm}

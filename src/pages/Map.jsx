@@ -103,7 +103,7 @@ const Map = () => {
 
     return (
         <>
-            <div className="bg-gray-200 pt-24 pb-10 px-20">
+            <div className="bg-gray-200 pt-24 pb-10 px-4 sm:px-16">
                 <Navbar />
 
                 {/* Map Section */}
@@ -128,28 +128,8 @@ const Map = () => {
                         </button>
                     </div>
 
-                    <div className="flex gap-8">
-                        <div className="rounded-lg w-2/5 border p-4 bg-white border-gray-300 shadow-lg">
-                            <h1 className="text-xl font-medium">List Pelanggan</h1>
-                            <div className="p-4">
-                                <div className="border py-2 px-4 rounded-2xl bg-gray-100 border-gray-200 shadow-inner mb-4">
-                                    <div className="flex items-center gap-2 font-bold text-black">
-                                        <h5 className="">ID</h5>
-                                        <h5 className="">|</h5>
-                                        <h5 className="">Nama</h5>
-                                    </div>
-                                    <h5 className="text-gray-600">Alamat</h5>
-                                </div>
-                                <div className="border py-2 px-4 rounded-2xl bg-gray-100 border-gray-200 shadow-inner mb-4">
-                                    <div className="flex items-center gap-2 font-bold text-black">
-                                        <h5 className="">ID</h5>
-                                        <h5 className="">|</h5>
-                                        <h5 className="">Nama</h5>
-                                    </div>
-                                    <h5 className="text-gray-600">Alamat</h5>
-                                </div>
-                            </div>
-                        </div>
+                    <div className="lg:flex gap-8 z-10">
+                        
                         {loading ? (
                             <p>Memuat data peta...</p>
                         ) : (
@@ -157,7 +137,7 @@ const Map = () => {
                                 <MapContainer
                                     center={[-7.2278, 107.9087]} // Posisi awal sebelum auto-fit
                                     zoom={10}
-                                    style={{ height: '100%', width: '100%' }}
+                                    style={{ height: '100%', width: '100%', zIndex: '10', }}
                                 >
                                     <TileLayer
                                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -196,6 +176,27 @@ const Map = () => {
                                 </MapContainer>
                             </div>
                         )}
+                        <div className="rounded-lg lg:w-2/5 border p-4 bg-white border-gray-300 shadow-lg">
+                            <h1 className="text-xl font-medium">List Pelanggan</h1>
+                            <div className="p-4">
+                                <div className="border py-2 px-4 rounded-2xl bg-gray-100 border-gray-200 shadow-inner mb-4">
+                                    <div className="flex items-center gap-2 font-bold text-black">
+                                        <h5 className="">ID</h5>
+                                        <h5 className="">|</h5>
+                                        <h5 className="">Nama</h5>
+                                    </div>
+                                    <h5 className="text-gray-600">Alamat</h5>
+                                </div>
+                                <div className="border py-2 px-4 rounded-2xl bg-gray-100 border-gray-200 shadow-inner mb-4">
+                                    <div className="flex items-center gap-2 font-bold text-black">
+                                        <h5 className="">ID</h5>
+                                        <h5 className="">|</h5>
+                                        <h5 className="">Nama</h5>
+                                    </div>
+                                    <h5 className="text-gray-600">Alamat</h5>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                 </div>

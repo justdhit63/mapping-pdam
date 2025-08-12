@@ -59,7 +59,7 @@ const MapPicker = ({ onLocationSelect, latitude, longitude }) => {
     }
     return (
         <>
-            <div className="mb-4">
+            <div className="mb-4 z-10">
                 <p className="text-sm text-gray-600 mb-2">Klik pada peta untuk memilih lokasi pelanggan:</p>
                 <MapContainer center={position} zoom={18} style={{ height: '400px', width: '100%' }} className="rounded-lg shadow-md">
                     <TileLayer

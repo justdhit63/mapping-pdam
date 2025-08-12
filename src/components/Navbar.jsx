@@ -47,16 +47,8 @@ const Navbar = () => {
     return (
         <>
 
-            <button
-                onClick={toggleNav}
-                className={` rounded-md hover:bg-blue-300 focus:outline-none ${isNavOpen ? 'sm:hidden' : 'inline-block'}`}
-            >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
-                </svg>
-            </button>
-            <div className="flex justify-center items-center mx-auto">
-                <nav className={`${isNavOpen ? 'sm:flex' : 'hidden'} fixed w-4/5 justify-center xl:gap-20 mx-auto bg-white py-4 rounded-2xl shadow-lg border border-gray-200 text-lg px-4 mb-8 z-50`}>
+            <div className="flex justify-center items-center mx-auto z-50">
+                <nav className={`flex fixed w-4/5 gap-4 lg:gap-2 justify-center xl:gap-20 mx-auto bg-white py-4 rounded-2xl shadow-lg border border-gray-200 text-lg px-4 mb-8 z-50`}>
                     {/* Logo */}
                     <div className="flex items-center gap-2">
                         <img src="./logo.png" alt="" className="w-16 h-16 p-2 rounded-lg border border-gray-200 shadow-md" />
@@ -67,15 +59,23 @@ const Navbar = () => {
                     </div>
 
                     <div className="border border-gray-200 bg-gray-100 shadow-inner rounded-full flex items-center py-2">
+                        <button
+                            onClick={toggleNav}
+                            className="lg:hidden flex items-center justify-center p-2 rounded-full bg-gray-200 shadow-md hover:bg-gray-300 mx-10"
+                        >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
+                            </svg>
+                        </button>
                         {navItems.map((item) => (
-                            <NavLink key={item.name} to={item.path} className={({ isActive }) => `flex justify-center items-center font-bold mb-4 p-2 rounded-4xl sm:mb-0 mx-4 text-xs ${isActive ? 'text-white bg-blue-400' : 'text-gray-500 hover:text-blue-300'}`}>
+                            <NavLink key={item.name} to={item.path} className={({ isActive }) => `hidden lg:flex justify-center items-center font-bold mb-4 p-2 rounded-4xl sm:mb-0 mx-2 text-xs ${isActive ? 'text-white bg-blue-400' : 'text-gray-500 hover:text-blue-300'}`}>
                                 <h5>{item.name}</h5>
                             </NavLink>
                         ))}
                     </div>
 
                     {/* Profile */}
-                    <div className="flex gap-4 items-center">
+                    <div className="hidden sm:flex gap-4 items-center">
                         <button
                             onClick={handleLogout}
                             className=" border p-2 rounded-full bg-red-200 cursor-pointer border-gray-200 shadow-md"
@@ -88,6 +88,14 @@ const Navbar = () => {
                         </div>
                     </div>
                 </nav>
+                <div className={`${isNavOpen ? '-translate-y-40' : 'translate-y-16'} lg:hidden border fixed transition-all ease-in-out border-gray-200 bg-gray-100 shadow-inner flex rounded-full items-center py-2`}>
+                    {navItems.map((item) => (
+                        <NavLink key={item.name} to={item.path} className={({ isActive }) => `flex justify-center items-center font-bold rounded-4xl sm:mb-0 mx-2 text-xs ${isActive ? 'text-white bg-blue-400' : 'text-gray-500 hover:text-blue-300'}`}>
+                            <h5>{item.name}</h5>
+                        </NavLink>
+                    ))}
+                    <button onClick={handleLogout} className=" sm:hidden flex justify-center items-center font-bold rounded-4xl sm:mb-0 mx-2 text-xs text-red-500">Logout</button>
+                </div>
             </div>
         </>
     )

@@ -90,11 +90,11 @@ const Navbar = () => {
                 </nav>
                 <div className={`${isNavOpen ? '-translate-y-40' : 'translate-y-16'} lg:hidden border fixed transition-all ease-in-out border-gray-200 bg-gray-100 shadow-inner flex rounded-full items-center py-2`}>
                     {navItems.map((item) => (
-                        <NavLink key={item.name} to={item.path} className={({ isActive }) => `flex justify-center items-center font-bold rounded-4xl sm:mb-0 mx-2 text-xs ${isActive ? 'text-white bg-blue-400' : 'text-gray-500 hover:text-blue-300'}`}>
+                        <NavLink key={item.name} to={item.path} className={({ isActive }) => `flex justify-center items-center font-bold rounded-4xl sm:mb-0 mx-2 text-sm ${isActive ? 'text-white bg-blue-400' : 'text-gray-500 hover:text-blue-300'}`}>
                             <h5>{item.name}</h5>
                         </NavLink>
                     ))}
-                    <button onClick={handleLogout} className=" sm:hidden flex justify-center items-center font-bold rounded-4xl sm:mb-0 mx-2 text-xs text-red-500">Logout</button>
+                    <button onClick={handleLogout} className=" sm:hidden flex justify-center items-center font-bold rounded-4xl sm:mb-0 mx-2 text-sm text-red-500">Logout</button>
                 </div>
             </div>
         </>

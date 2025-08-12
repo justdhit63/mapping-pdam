@@ -38,20 +38,21 @@ const Login = () => {
 
     return (
         <>
-            <div className="h-screen grid grid-cols-2 items-center">
-                <div className="bg-blue-300 w-full h-full">Foto</div>
-                <div className="bg-white w-full h-full p-10 flex items-center justify-center">
-                    <div className="">
-                        <h1 className='font-semibold text-2xl'>Sign In</h1>
-                        <h5 className="text-gray-500 mb-8">Lorem, ipsum dolor sit amet consectetur adipisicing.</h5>
-                        <form onSubmit={handleLogin} className="">
+            <div className="min-h-screen p-8 bg-linear-to-r from-gray-200 to-blue-300/70">
+            <img src="./logo.png" alt="" className='w-20 h-20' />
+                <div className="w-full sm:w-3/4 lg:w-1/2 drop-shadow-lg mx-auto bg-white/50 rounded-4xl px-10 py-20 flex items-center justify-center">
+                    <div className="w-full">
+                        <h1 className='font-semibold text-2xl text-center'>Sign In</h1>
+                        <h5 className="text-gray-500 text-center">Lorem ipsum dolor sit amet.</h5>
+                        <div className="border border-gray-300 my-8 w-3/4 mx-auto"></div>
+                        <form onSubmit={handleLogin} className="w-3/4 mx-auto">
                             <h1 className="">Email</h1>
                             <input
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder='email@example.com'
-                                className='py-2 px-4 border rounded-md w-full border-gray-400 shadow-md mb-8'
+                                className='py-2 px-4 border rounded-2xl bg-gray-50 w-full border-gray-400 shadow-md mb-8'
                                 required
                             />
                             <h1 className="">Password</h1>
@@ -60,10 +61,10 @@ const Login = () => {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder='Password'
-                                className='py-2 px-4 border rounded-md w-full border-gray-400 shadow-md mb-8'
+                                className='py-2 px-4 border rounded-2xl bg-gray-50 w-full border-gray-400 shadow-md mb-8'
                                 required
                             />
-                            <button type="submit" disabled={loading} className='rounded-lg py-2 px-4 bg-blue-400 text-white font-medium w-1/2'>{loading ? 'Loading..' : 'Sign In'}</button>
+                            <button type="submit" disabled={loading} className='rounded-full w-full p-3 bg-blue-400/70 hover:bg-blue-400 text-white font-medium shadow-md'>{loading ? 'Loading..' : 'Sign In'}</button>
                         </form>
                     </div>
                 </div>

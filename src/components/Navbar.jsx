@@ -55,8 +55,8 @@ const Navbar = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
                 </svg>
             </button>
-            <div className="w-full flex justify-center items-center mx-auto">
-                <nav className={`${isNavOpen ? 'sm:flex' : 'hidden'} fixed justify-center gap-20 mx-auto bg-white py-4 rounded-2xl shadow-lg border border-gray-200 text-lg px-4 mb-8 z-50`}>
+            <div className="flex justify-center items-center mx-auto">
+                <nav className={`${isNavOpen ? 'sm:flex' : 'hidden'} fixed w-4/5 justify-center xl:gap-20 mx-auto bg-white py-4 rounded-2xl shadow-lg border border-gray-200 text-lg px-4 mb-8 z-50`}>
                     {/* Logo */}
                     <div className="flex items-center gap-2">
                         <img src="./logo.png" alt="" className="w-16 h-16 p-2 rounded-lg border border-gray-200 shadow-md" />
@@ -66,9 +66,9 @@ const Navbar = () => {
                         </div>
                     </div>
 
-                    <div className=" border border-gray-200 bg-gray-100 shadow-inner rounded-full flex items-center gap-2 py-2">
+                    <div className="border border-gray-200 bg-gray-100 shadow-inner rounded-full flex items-center py-2">
                         {navItems.map((item) => (
-                            <NavLink key={item.name} to={item.path} className={({ isActive }) => `flex justify-center items-center font-bold mb-4 px-4 py-2 rounded-4xl sm:mb-0 mx-4 ${isActive ? 'text-white bg-blue-400' : 'text-gray-500 hover:text-blue-300'}`}>
+                            <NavLink key={item.name} to={item.path} className={({ isActive }) => `flex justify-center items-center font-bold mb-4 p-2 rounded-4xl sm:mb-0 mx-4 text-xs ${isActive ? 'text-white bg-blue-400' : 'text-gray-500 hover:text-blue-300'}`}>
                                 <h5>{item.name}</h5>
                             </NavLink>
                         ))}

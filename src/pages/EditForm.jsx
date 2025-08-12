@@ -139,8 +139,7 @@ const EditForm = () => {
 
     return (
         <>
-            <Header />
-            <div className="bg-gray-200 py-16 px-10">
+            <div className="bg-gray-200 pt-24 px-8 sm:px-16">
                 <Navbar />
                 <div className="bg-white p-8 rounded-lg shadow-md">
                     <h1 className="text-2xl font-bold mb-6">Edit Data Pelanggan</h1>

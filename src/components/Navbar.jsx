@@ -51,7 +51,7 @@ const Navbar = () => {
                 <nav className={`flex fixed w-4/5 gap-4 lg:gap-2 justify-center xl:gap-20 mx-auto bg-white py-4 rounded-2xl shadow-lg border border-gray-200 text-lg px-4 mb-8 z-50`}>
                     {/* Logo */}
                     <div className="flex items-center gap-2">
-                        <img src="./logo.png" alt="" className="w-16 h-16 p-2 rounded-lg border border-gray-200 shadow-md" />
+                        <img src="/logo.png" alt="" className="w-16 h-16 p-2 rounded-lg border border-gray-200 shadow-md" />
                         <div className="font-bold tracking-wide text-xl">
                             <h1 className="text-blue-500">PDAM</h1>
                             <h1 className="text-sm bg-linear-to-r from-green-500 to-yellow-500 bg-clip-text text-transparent">Tirta Intan</h1>

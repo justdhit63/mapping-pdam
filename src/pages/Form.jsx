@@ -29,7 +29,7 @@ const Form = () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
                 // Jika tidak ada user yang login, arahkan ke halaman login
-                navigate('/login');
+                navigate('/');
             }
         };
 

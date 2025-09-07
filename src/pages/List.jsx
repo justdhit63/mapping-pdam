@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import Header from '../components/Header';
 import Navbar from '../components/Navbar';
-import { supabase } from '../supabaseClient';
+import { getAllPelanggan, deletePelanggan, updatePelanggan } from '../services/pelangganService.js';
 import { Link } from 'react-router-dom';
 
 const List = () => {
@@ -19,10 +19,7 @@ const List = () => {
     // Fungsi untuk mengambil semua data, dibungkus useCallback untuk efisiensi
     const fetchAllData = useCallback(async () => {
         setLoading(true);
-        const { data, error } = await supabase
-            .from('pelanggan')
-            .select('*')
-            .order('created_at', { ascending: false }); // Mengurutkan berdasarkan data terbaru
+        const { data, error } = await getAllPelanggan();
 
         if (error) {
             console.error('Error Fetching Data: ', error);
@@ -61,20 +58,53 @@ const List = () => {
         if (!isConfirm) return;
 
         try {
-            const { error } = await supabase
-                .from('pelanggan')
-                .delete()
-                .eq('id', pelangganId);
+            const { data, error } = await deletePelanggan(pelangganId);
 
-            if (error) throw error;
+            if (error) throw new Error(error.message);
 
             // Setelah berhasil menghapus, ambil ulang data terbaru dari server
-            // Ini lebih aman daripada hanya memfilter state
             fetchAllData();
             alert('Data Pelanggan Berhasil Dihapus!');
 
         } catch (error) {
             alert('Error menghapus data: ' + error.message);
+        }
+    };
+
+    // Fungsi untuk mengubah status pelanggan
+    const handleStatusToggle = async (pelangganId, currentStatus) => {
+        const newStatus = currentStatus === 'aktif' ? 'tidak aktif' : 'aktif';
+        const confirmMessage = `Apakah anda yakin ingin mengubah status menjadi "${newStatus}"?`;
+
+        const isConfirm = window.confirm(confirmMessage);
+        if (!isConfirm) return;
+
+        try {
+            // Buat FormData untuk update
+            const formData = new FormData();
+            formData.append('status_pelanggan', newStatus);
+
+            const { data, error } = await updatePelanggan(pelangganId, formData);
+
+            if (error) throw new Error(error.message);
+
+            // Update data lokal untuk UI yang responsive
+            setAllPelanggan(prev => prev.map(p =>
+                p.id === pelangganId
+                    ? { ...p, status_pelanggan: newStatus }
+                    : p
+            ));
+
+            setFilteredPelanggan(prev => prev.map(p =>
+                p.id === pelangganId
+                    ? { ...p, status_pelanggan: newStatus }
+                    : p
+            ));
+
+            alert(`Status pelanggan berhasil diubah menjadi "${newStatus}"!`);
+
+        } catch (error) {
+            alert('Error mengubah status: ' + error.message);
         }
     };
 
@@ -106,24 +136,56 @@ const List = () => {
                                 // Render data dari state 'filteredPelanggan'
                                 filteredPelanggan.length > 0 ? (
                                     filteredPelanggan.map((pelanggan) => (
-                                        <div key={pelanggan.id} className="py-4 px-8 mb-4 rounded-lg border border-gray-200 shadow-lg sm:flex items-center gap-8 transition hover:shadow-xl">
-                                            <img src={pelanggan.foto_rumah_url || './image-break.png'} alt="Foto Rumah" className='w-20 h-20 object-cover rounded-md mx-auto sm:mx-0' />
-                                            <div className="flex-grow my-4 sm:my-0 text-center sm:text-left">
-                                                <div className="flex gap-2 sm:gap-4 items-center mb-2 justify-center sm:justify-start">
-                                                    <h2 className='font-semibold text-lg sm:text-xl text-blue-600'>{pelanggan.id_pelanggan}</h2>
-                                                    <h2 className='font-medium text-gray-400'>|</h2>
-                                                    <h2 className='font-medium text-lg sm:text-xl text-gray-800'>{pelanggan.nama_pelanggan}</h2>
+                                        <div key={pelanggan.id} className="py-4 px-8 mb-4 rounded-lg border border-gray-200 shadow-lg transition hover:shadow-xl">
+                                            <Link to={`/daftar-pelanggan/detail/${pelanggan.id}`} className="block">
+                                                <div className="sm:flex items-center gap-8 cursor-pointer">
+                                                    <img src={pelanggan.foto_rumah_url ? `http://localhost:3001${pelanggan.foto_rumah_url}` : './image-break.png'} alt="Foto Rumah" className='w-20 h-20 object-cover rounded-md mx-auto sm:mx-0' />
+                                                    <div className="flex-grow my-4 sm:my-0 text-center sm:text-left">
+                                                        <div className="flex gap-2 sm:gap-4 items-center mb-2 justify-center sm:justify-start">
+                                                            <h2 className='font-semibold text-lg sm:text-xl text-blue-600'>{pelanggan.id_pelanggan}</h2>
+                                                            <h2 className='font-medium text-gray-400'>|</h2>
+                                                            <h2 className='font-medium text-lg sm:text-xl text-gray-800'>{pelanggan.nama_pelanggan}</h2>
+                                                        </div>
+                                                        <h5 className='text-gray-600 text-sm'>{pelanggan.alamat}</h5>
+                                                        <div className="mt-2 flex justify-between items-center">
+                                                            <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${pelanggan.status_pelanggan === 'aktif'
+                                                                    ? 'bg-green-100 text-green-800'
+                                                                    : 'bg-red-100 text-red-800'
+                                                                }`}>
+                                                                {pelanggan.status_pelanggan || 'aktif'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <h5 className='text-gray-600 text-sm'>{pelanggan.alamat}</h5>
-                                            </div>
-                                            <div className="flex justify-center sm:justify-end gap-3 mt-4 sm:mt-0">
+                                            </Link>
+                                            <div className="flex justify-center sm:justify-end items-center gap-4 mt-4 sm:mt-0">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            handleStatusToggle(pelanggan.id, pelanggan.status_pelanggan || 'aktif');
+                                                        }}
+                                                        className={`px-4 py-2 font-medium rounded-md text-sm transition-all duration-200 ${(pelanggan.status_pelanggan || 'aktif') === 'aktif'
+                                                                ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                                                                : 'bg-green-100 text-green-700 hover:bg-green-200'
+                                                            }`}
+                                                        title={`Ubah status menjadi ${(pelanggan.status_pelanggan || 'aktif') === 'aktif' ? 'tidak aktif' : 'aktif'}`}
+                                                    >
+                                                        {(pelanggan.status_pelanggan || 'aktif') === 'aktif' ? 'Nonaktifkan' : 'Aktifkan'}
+                                                    </button>
                                                 <Link to={`/daftar-pelanggan/edit-pelanggan/${pelanggan.id}`}>
-                                                    <button className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-md text-sm">
+                                                    <button
+                                                        className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-md text-sm"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
                                                         Update
                                                     </button>
                                                 </Link>
                                                 <button
-                                                    onClick={() => handleDelete(pelanggan.id)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDelete(pelanggan.id);
+                                                    }}
                                                     className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md text-sm"
                                                 >
                                                     Delete

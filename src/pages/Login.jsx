@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { supabase } from '../supabaseClient'
+import { login, isAuthenticated } from '../services/authService.js'
 import { useNavigate } from 'react-router-dom'
 
 const Login = () => {
@@ -9,12 +9,13 @@ const Login = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-      const checkSession = async () => {
-        const {data: {session}} = await supabase.auth.getSession();
-        if (session) navigate('/dashboard', {replace: true});
-      };
-    
-      checkSession();
+        const checkSession = () => {
+            if (isAuthenticated()) {
+                navigate('/dashboard', { replace: true });
+            }
+        };
+
+        checkSession();
     }, [navigate]);
     
 
@@ -22,13 +23,10 @@ const Login = () => {
         e.preventDefault();
         setLoading(true);
 
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email: email,
-            password: password,
-        });
+        const { data, error } = await login(email, password);
 
         if (error) {
-            alert('Login Gagal' + error.message);
+            alert('Login Gagal: ' + error.message);
         } else {
             alert('Login Berhasil!');
             navigate('/dashboard');

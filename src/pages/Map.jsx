@@ -2,10 +2,13 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 // import L from 'leaflet';
-import { supabase } from '../supabaseClient';
+import { getAllPelanggan } from '../services/pelangganService.js';
+import { getAllPelangganAdmin } from '../services/adminService.js';
+import { getCurrentUser } from '../services/authService.js';
+import apiClient from '../services/apiClient.js';
 import Header from '../components/Header';
 import Navbar from '../components/Navbar';
-import { FaSearch, FaTimes } from 'react-icons/fa'
+import { FaSearch, FaTimes, FaCrown, FaFilter, FaSpinner, FaUsers } from 'react-icons/fa'
 import CustomerMarker from '../components/CustomMarker';
 
 function FitBounds({ points }) {
@@ -40,24 +43,59 @@ const Map = () => {
     const [isSearching, setIsSearching] = useState(false);
     const [flyToPosition, setFlyToPosition] = useState(null);
     const [selectedPelanggan, setSelectedPelanggan] = useState(null);
+    const [user, setUser] = useState(null);
+    const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'aktif', 'tidak aktif'
+
+    useEffect(() => {
+        const fetchCurrentUser = async () => {
+            try {
+                const currentUser = await getCurrentUser();
+                setUser(currentUser);
+            } catch (error) {
+                console.error('Error fetching current user:', error);
+                // Fallback ke localStorage jika gagal
+                const { getCurrentUserFromStorage } = await import('../services/authService.js');
+                const fallbackUser = getCurrentUserFromStorage();
+                setUser(fallbackUser);
+            }
+        };
+
+        fetchCurrentUser();
+    }, []);
 
     const fetchAllPelanggan = useCallback(async () => {
         setLoading(true);
-        const { data, error } = await supabase
-            .from('pelanggan')
-            .select('id, id_pelanggan, nama_pelanggan, alamat, latitude, longitude, no_telpon, tanggal_pemasangan, foto_rumah_url'); // Ambil lebih banyak data untuk rincian
+        try {
+            let data, error;
 
-        if (error) {
-            console.error('Gagal mengambil data pelanggan:', error);
-        } else {
-            setPelangganList(data);
+            if (user?.role === 'admin') {
+                // Admin dapat melihat semua pelanggan dari semua user
+                const adminResult = await getAllPelangganAdmin();
+                data = adminResult.data;
+                error = adminResult.error;
+            } else {
+                // User biasa hanya melihat pelanggan mereka sendiri
+                const userResult = await getAllPelanggan();
+                data = userResult.data;
+                error = userResult.error;
+            }
+
+            if (error) {
+                console.error('Gagal mengambil data pelanggan:', error);
+            } else {
+                setPelangganList(data || []);
+            }
+        } catch (error) {
+            console.error('Error fetching pelanggan:', error);
         }
         setLoading(false);
-    }, []);
+    }, [user]);
 
     useEffect(() => {
-        fetchAllPelanggan();
-    }, [fetchAllPelanggan]);
+        if (user) {
+            fetchAllPelanggan();
+        }
+    }, [fetchAllPelanggan, user]);
 
     const handleSearch = async () => {
         if (!searchId.trim()) {
@@ -67,25 +105,27 @@ const Map = () => {
         setIsSearching(true);
         setFlyToPosition(null); // Reset posisi terbang sebelumnya
 
-        const { data, error } = await supabase
-            .from('pelanggan')
-            .select('*')
-            .eq('id_pelanggan', searchId.trim())
-            .single(); // .single() karena ID seharusnya unik
+        try {
+            // Cari pelanggan berdasarkan id_pelanggan dari data yang sudah ada
+            const pelanggan = pelangganList.find(p => p.id_pelanggan === searchId.trim());
 
-        if (error || !data) {
-            alert('Pelanggan dengan ID tersebut tidak ditemukan.');
-            console.error('Search error:', error);
-        } else {
-            setSelectedPelanggan(data);
-            if (data.latitude && data.longitude) {
-                // Jika ditemukan, set koordinat tujuan untuk komponen FlyToLocation
-                setFlyToPosition([data.latitude, data.longitude]);
+            if (!pelanggan) {
+                alert('Pelanggan dengan ID tersebut tidak ditemukan.');
             } else {
-                alert('Pelanggan ditemukan, tetapi tidak memiliki data lokasi di peta.');
+                setSelectedPelanggan(pelanggan);
+                if (pelanggan.latitude && pelanggan.longitude) {
+                    // Jika ditemukan, set koordinat tujuan untuk komponen FlyToLocation
+                    setFlyToPosition([pelanggan.latitude, pelanggan.longitude]);
+                } else {
+                    alert('Pelanggan ditemukan, tetapi tidak memiliki data lokasi di peta.');
+                }
             }
+        } catch (error) {
+            console.error('Search error:', error);
+            alert('Terjadi kesalahan saat mencari pelanggan.');
+        } finally {
+            setIsSearching(false);
         }
-        setIsSearching(false);
     };
 
     // Siapkan array koordinat untuk komponen FitBounds
@@ -112,6 +152,16 @@ const Map = () => {
         }
     };
 
+    const filterPelangganByStatus = (pelanggan) => {
+        if (statusFilter === 'all') return true;
+        return pelanggan.status_pelanggan === statusFilter;
+    };
+
+    const filteredPelangganList = pelangganList.filter(filterPelangganByStatus);
+
+    const activeCount = pelangganList.filter(p => p.status_pelanggan === 'aktif').length;
+    const inactiveCount = pelangganList.filter(p => p.status_pelanggan === 'tidak aktif').length;
+
     return (
         <>
             <div className="bg-gray-200 pt-24 pb-10 px-4 sm:px-16">
@@ -119,7 +169,50 @@ const Map = () => {
 
                 {/* Map Section */}
                 <div className="my-10 p-8">
-                    <h1 className="text-2xl font-medium mb-4">Peta Sebaran Pelanggan</h1>
+                    <div className="flex justify-between items-center mb-4">
+                        <h1 className="text-2xl font-medium">
+                            Peta Sebaran Pelanggan
+                            {user?.role === 'admin' && (
+                                <span className="ml-2 text-yellow-600">
+                                    <FaCrown className="inline ml-1" />
+                                    Admin View
+                                </span>
+                            )}
+                        </h1>
+                    </div>
+
+                    {/* Statistics Card for All Users */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div className="bg-white p-4 rounded-lg shadow-md border border-gray-300">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm text-gray-600">
+                                        {user?.role === 'admin' ? 'Total Pelanggan' : 'Total Pelanggan Saya'}
+                                    </p>
+                                    <p className="text-2xl font-bold text-gray-800">{pelangganList.length}</p>
+                                </div>
+                                <FaUsers className="text-3xl text-blue-500" />
+                            </div>
+                        </div>
+                        <div className="bg-white p-4 rounded-lg shadow-md border border-gray-300">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm text-gray-600">Pelanggan Aktif</p>
+                                    <p className="text-2xl font-bold text-green-600">{activeCount}</p>
+                                </div>
+                                <div className="w-4 h-4 bg-green-500 rounded-full"></div>
+                            </div>
+                        </div>
+                        <div className="bg-white p-4 rounded-lg shadow-md border border-gray-300">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm text-gray-600">Pelanggan Tidak Aktif</p>
+                                    <p className="text-2xl font-bold text-red-600">{inactiveCount}</p>
+                                </div>
+                                <div className="w-4 h-4 bg-red-500 rounded-full"></div>
+                            </div>
+                        </div>
+                    </div>
 
                     <div className='flex shadow-md mb-8'>
                         <input
@@ -139,10 +232,42 @@ const Map = () => {
                         </button>
                     </div>
 
+                    {/* Filter for All Users */}
+                    <div className="flex items-center gap-4 mb-6">
+                        <FaFilter className="text-gray-600" />
+                        <span className="text-gray-700 font-medium">Filter Status:</span>
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="px-3 py-1 border border-gray-300 rounded-md bg-white"
+                        >
+                            <option value="all">Semua Status</option>
+                            <option value="aktif">Aktif ({activeCount})</option>
+                            <option value="tidak aktif">Tidak Aktif ({inactiveCount})</option>
+                        </select>
+
+                        {/* Legend */}
+                        <div className="flex items-center gap-4 ml-4">
+                            <div className="flex items-center gap-1">
+                                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                                <span className="text-xs text-gray-600">Aktif</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                                <span className="text-xs text-gray-600">Tidak Aktif</span>
+                            </div>
+                        </div>
+                    </div>
+
                     <div className="lg:flex gap-8 z-10">
 
                         {loading ? (
-                            <p>Memuat data peta...</p>
+                            <div className="flex items-center justify-center min-h-[60vh]">
+                                <div className="text-center">
+                                    <FaSpinner className="animate-spin text-4xl text-blue-500 mx-auto mb-4" />
+                                    <p className="text-gray-600">Memuat data peta...</p>
+                                </div>
+                            </div>
                         ) : (
                             <div className="w-full h-[60vh] rounded-lg overflow-hidden my-4 z-10 border border-gray-400 shadow-lg">
                                 <MapContainer
@@ -156,19 +281,22 @@ const Map = () => {
                                         className='z-10'
                                     />
 
-                                    {pelangganList.map(pelanggan => (
+                                    {filteredPelangganList.map(pelanggan => (
                                         pelanggan.latitude && pelanggan.longitude && (
                                             <CustomerMarker
                                                 key={pelanggan.id}
                                                 pelanggan={pelanggan}
                                                 isSelected={selectedPelanggan?.id === pelanggan.id}
                                                 onClick={handleMarkerClick}
+                                                isAdminView={user?.role === 'admin'}
+                                                showStatusColors={true}
                                             />
                                         )
                                     ))}
                                     {/* ----------------------------- */}
 
-                                    {!flyToPosition && locations.length > 0 && <FitBounds points={locations} />}
+                                    {!flyToPosition && filteredPelangganList.filter(p => p.latitude && p.longitude).length > 0 &&
+                                        <FitBounds points={filteredPelangganList.filter(p => p.latitude && p.longitude).map(p => [p.latitude, p.longitude])} />}
                                     {flyToPosition && <FlyToLocation position={flyToPosition} />}
                                 </MapContainer>
                             </div>
@@ -192,9 +320,11 @@ const Map = () => {
                                         <p><strong>Alamat:</strong> {selectedPelanggan.alamat}</p>
                                         <p><strong>Tanggal Pasang:</strong> {new Date(selectedPelanggan.tanggal_pemasangan).toLocaleDateString('id-ID')}</p>
                                     </div>
-                                    <Link to={`/daftar-pelanggan/edit-pelanggan/${selectedPelanggan.id}`} className="mt-4 block w-full text-center bg-yellow-500 text-white font-bold py-2 px-4 rounded-md hover:bg-yellow-600">
-                                        Edit Detail Pelanggan
-                                    </Link>
+                                    {user?.role !== 'admin' && (
+                                        <Link to={`/daftar-pelanggan/edit-pelanggan/${selectedPelanggan.id}`} className="mt-4 block w-full text-center bg-yellow-500 text-white font-bold py-2 px-4 rounded-md hover:bg-yellow-600">
+                                            Edit Detail Pelanggan
+                                        </Link>
+                                    )}
                                 </div>
                             ) : (
                                 // Tampilan default jika tidak ada pelanggan yang dipilih

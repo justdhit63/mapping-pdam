@@ -12,9 +12,11 @@ import Dashboard from './pages/Dashboard'
 import Map from './pages/Map'
 import Form from './pages/Form'
 import List from './pages/List'
+import Detail from './pages/Detail'
 import Analytic from './pages/Analytic'
 import Edit from './pages/Edit'
 import EditForm from './pages/EditForm'
+import AdminPanel from './pages/AdminPanel'
 
 const DaftarPelangganLayout = () => {
   return <Outlet />;
@@ -31,9 +33,11 @@ function App() {
         <Route path="/input-data" element={<Form />} />
         <Route path="/daftar-pelanggan" element={<DaftarPelangganLayout />}>
           <Route index element={<List />} />
+          <Route path='detail/:id' element={<Detail />} />
           <Route path='edit-pelanggan/:id' element={<EditForm />} />
         </Route>
         <Route path="/analitik" element={<Analytic />} />
+        <Route path="/admin" element={<AdminPanel />} />
         <Route path="/edit-profile" element={<Edit />} />
 
         <Route path="/" element={<Dashboard />} />

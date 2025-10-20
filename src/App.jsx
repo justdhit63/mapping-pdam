@@ -17,6 +17,9 @@ import Analytic from './pages/Analytic'
 import Edit from './pages/Edit'
 import EditForm from './pages/EditForm'
 import AdminPanel from './pages/AdminPanel'
+import RegistrationForm from './pages/RegistrationForm'
+import AdminRegistrations from './pages/AdminRegistrations.jsx'
+import SelectInput from './pages/SelectInput.jsx'
 
 const DaftarPelangganLayout = () => {
   return <Outlet />;
@@ -30,7 +33,9 @@ function App() {
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/peta" element={<Map />} />
-        <Route path="/input-data" element={<Form />} />
+        <Route path="/input-data" element={<SelectInput />} />
+        <Route path="/input-data/form" element={<Form />} />
+        <Route path="/input-data/registrasi" element={<RegistrationForm />} />
         <Route path="/daftar-pelanggan" element={<DaftarPelangganLayout />}>
           <Route index element={<List />} />
           <Route path='detail/:id' element={<Detail />} />
@@ -38,6 +43,7 @@ function App() {
         </Route>
         <Route path="/analitik" element={<Analytic />} />
         <Route path="/admin" element={<AdminPanel />} />
+        <Route path="/admin/registrations" element={<AdminRegistrations />} />
         <Route path="/edit-profile" element={<Edit />} />
 
         <Route path="/" element={<Dashboard />} />

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { FaChartPie, FaKeyboard, FaList, FaMap, FaUserCircle, FaCrown, FaHome, FaPlus, FaUsers } from "react-icons/fa";
+import { FaChartPie, FaKeyboard, FaList, FaMap, FaUserCircle, FaCrown, FaHome, FaPlus, FaUsers, FaUserPlus, FaClipboardList } from "react-icons/fa";
 import { FaArrowRightFromBracket, FaChartSimple, FaPenToSquare } from "react-icons/fa6";
 import { NavLink, useNavigate } from 'react-router-dom';
 import { logout, getCurrentUser, getCurrentUserFromStorage, isAdmin } from "../services/authService.js";
@@ -27,6 +27,7 @@ const Navbar = () => {
                         items = [
                             { name: 'Dashboard', path: '/dashboard', icon: FaHome },
                             { name: 'Admin Panel', path: '/admin', icon: FaCrown },
+                            { name: 'Registrasi', path: '/admin/registrations', icon: FaClipboardList },
                             { name: 'Peta', path: '/peta', icon: FaMap },
                         ];
                     } else {

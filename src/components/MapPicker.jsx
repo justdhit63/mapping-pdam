@@ -51,24 +51,12 @@ const MapPicker = ({ onLocationSelect, latitude, longitude }) => {
     const handleLocationSelect = async (coords) => {
         setPosition([coords.lat, coords.lng]);
 
-        try {
-            const response = await fetch(
-                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords.lat}&lon=${coords.lng}`
-            );
-
-            const data = await response.json();
-
+        // Call parent callback directly without external API to avoid CORS
+        if (onLocationSelect) {
             onLocationSelect({
                 latitude: coords.lat,
                 longitude: coords.lng,
-                alamat: data.display_name || 'Alamat tidak ditemukan',
-            });
-        } catch (error) {
-            console.error("Error fetching address: ", error);
-            onLocationSelect({
-                latitude: coords.lat,
-                longitude: coords.lng,
-                alamat: 'Gagal mendapatkan alamat',
+                alamat: null, // Don't auto-fill address to avoid CORS
             });
         }
     }
@@ -76,7 +64,7 @@ const MapPicker = ({ onLocationSelect, latitude, longitude }) => {
         <>
             <div className="mb-4 z-10">
                 <p className="text-sm text-gray-600 mb-2">Klik pada peta untuk memilih lokasi pelanggan:</p>
-                <MapContainer center={position} zoom={18} style={{ height: '400px', width: '100%' }} className="rounded-lg shadow-md">
+                <MapContainer center={position} zoom={18} style={{ height: '400px', width: '100%', zIndex: '10' }} className="rounded-lg shadow-md">
                     <TileLayer
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

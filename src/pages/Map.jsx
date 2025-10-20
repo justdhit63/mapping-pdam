@@ -10,6 +10,10 @@ import Header from '../components/Header';
 import Navbar from '../components/Navbar';
 import { FaSearch, FaTimes, FaCrown, FaFilter, FaSpinner, FaUsers } from 'react-icons/fa'
 import CustomerMarker from '../components/CustomMarker';
+import { getAvailableDesa } from '../services/desaService.js';
+import { getKecamatanByDesaId } from '../services/kecamatanService.js';
+import rayonService from '../services/rayonService.js';
+import { getAvailableCabang } from '../services/pelangganService.js';
 
 function FitBounds({ points }) {
     const map = useMap();
@@ -46,6 +50,17 @@ const Map = () => {
     const [user, setUser] = useState(null);
     const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'aktif', 'tidak aktif'
 
+    // Location filter lists & selections
+    const [desaList, setDesaList] = useState([]);
+    const [kecamatanList, setKecamatanList] = useState([]);
+    const [rayonList, setRayonList] = useState([]);
+    const [cabangList, setCabangList] = useState([]);
+
+    const [selectedDesa, setSelectedDesa] = useState('');
+    const [selectedKecamatan, setSelectedKecamatan] = useState('');
+    const [selectedRayon, setSelectedRayon] = useState('');
+    const [selectedCabang, setSelectedCabang] = useState('');
+
     useEffect(() => {
         const fetchCurrentUser = async () => {
             try {
@@ -62,6 +77,49 @@ const Map = () => {
 
         fetchCurrentUser();
     }, []);
+
+    // Load dropdown lists for filters on mount
+    useEffect(() => {
+        const loadLists = async () => {
+            try {
+                const desaRes = await getAvailableDesa();
+                if (desaRes?.data) setDesaList(desaRes.data || []);
+
+                const rayonRes = await rayonService.getAvailableRayon();
+                if (rayonRes?.success) setRayonList(rayonRes.data || []);
+
+                const cabangRes = await getAvailableCabang();
+                if (cabangRes?.data) setCabangList(cabangRes.data || []);
+            } catch (err) {
+                console.error('Error loading filter lists:', err);
+            }
+        };
+
+        loadLists();
+    }, []);
+
+    // When desa selection changes, load kecamatan options
+    useEffect(() => {
+        const loadKecamatan = async () => {
+            if (!selectedDesa) {
+                setKecamatanList([]);
+                setSelectedKecamatan('');
+                return;
+            }
+            try {
+                const res = await getKecamatanByDesaId(selectedDesa);
+                if (res?.data) {
+                    const data = Array.isArray(res.data) ? res.data : [res.data];
+                    setKecamatanList(data || []);
+                }
+            } catch (err) {
+                console.error('Error loading kecamatan for desa:', err);
+                setKecamatanList([]);
+            }
+        };
+
+        loadKecamatan();
+    }, [selectedDesa]);
 
     const fetchAllPelanggan = useCallback(async () => {
         setLoading(true);
@@ -159,6 +217,18 @@ const Map = () => {
 
     const filteredPelangganList = pelangganList.filter(filterPelangganByStatus);
 
+    // Apply location filters (desa/kecamatan/rayon/cabang)
+    const applyLocationFilters = (p) => {
+        if (!p) return false;
+        if (selectedDesa && String(p.desa_id) !== String(selectedDesa)) return false;
+        if (selectedKecamatan && String(p.kecamatan_id) !== String(selectedKecamatan)) return false;
+        if (selectedRayon && String(p.rayon_id) !== String(selectedRayon)) return false;
+        if (selectedCabang && String(p.cabang_id) !== String(selectedCabang)) return false;
+        return true;
+    };
+
+    const finalFilteredPelangganList = filteredPelangganList.filter(applyLocationFilters);
+
     const activeCount = pelangganList.filter(p => p.status_pelanggan === 'aktif').length;
     const inactiveCount = pelangganList.filter(p => p.status_pelanggan === 'tidak aktif').length;
 
@@ -233,21 +303,81 @@ const Map = () => {
                     </div>
 
                     {/* Filter for All Users */}
-                    <div className="flex items-center gap-4 mb-6">
+                    <div className="flex flex-wrap items-center gap-4 mb-6">
                         <FaFilter className="text-gray-600" />
-                        <span className="text-gray-700 font-medium">Filter Status:</span>
+                        <span className="text-gray-700 font-medium">Filter:</span>
+                        
+                        {/* Status Filter */}
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
-                            className="px-3 py-1 border border-gray-300 rounded-md bg-white"
+                            className="px-3 py-1 border border-gray-300 rounded-md bg-white text-sm"
                         >
                             <option value="all">Semua Status</option>
                             <option value="aktif">Aktif ({activeCount})</option>
                             <option value="tidak aktif">Tidak Aktif ({inactiveCount})</option>
                         </select>
 
+                        {/* Location Filters */}
+                        <select
+                            value={selectedCabang}
+                            onChange={(e) => setSelectedCabang(e.target.value)}
+                            className="px-2 py-1 border border-gray-300 rounded-md bg-white text-sm"
+                        >
+                            <option value="">Semua Cabang</option>
+                            {cabangList.map(c => (
+                                <option key={c.id} value={c.id}>{c.kode_unit} - {c.nama_unit}</option>
+                            ))}
+                        </select>
+
+                        <select
+                            value={selectedRayon}
+                            onChange={(e) => setSelectedRayon(e.target.value)}
+                            className="px-2 py-1 border border-gray-300 rounded-md bg-white text-sm"
+                        >
+                            <option value="">Semua Rayon</option>
+                            {rayonList.map(r => (
+                                <option key={r.id} value={r.id}>{r.nama_rayon}</option>
+                            ))}
+                        </select>
+
+                        <select
+                            value={selectedDesa}
+                            onChange={(e) => setSelectedDesa(e.target.value)}
+                            className="px-2 py-1 border border-gray-300 rounded-md bg-white text-sm"
+                        >
+                            <option value="">Semua Desa</option>
+                            {desaList.map(d => (
+                                <option key={d.id} value={d.id}>{d.nama_desa}</option>
+                            ))}
+                        </select>
+
+                        <select
+                            value={selectedKecamatan}
+                            onChange={(e) => setSelectedKecamatan(e.target.value)}
+                            className="px-2 py-1 border border-gray-300 rounded-md bg-white text-sm"
+                            disabled={!selectedDesa}
+                        >
+                            <option value="">Semua Kecamatan</option>
+                            {kecamatanList.map(k => (
+                                <option key={k.id} value={k.id}>{k.nama_kecamatan}</option>
+                            ))}
+                        </select>
+
+                        <button
+                            onClick={() => { 
+                                setSelectedCabang(''); 
+                                setSelectedRayon(''); 
+                                setSelectedDesa(''); 
+                                setSelectedKecamatan(''); 
+                            }}
+                            className="px-3 py-1 border rounded-md bg-red-100 hover:bg-red-200 text-sm font-medium"
+                        >
+                            Clear Filters
+                        </button>
+
                         {/* Legend */}
-                        <div className="flex items-center gap-4 ml-4">
+                        <div className="flex items-center gap-4 ml-auto">
                             <div className="flex items-center gap-1">
                                 <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                                 <span className="text-xs text-gray-600">Aktif</span>
@@ -281,7 +411,7 @@ const Map = () => {
                                         className='z-10'
                                     />
 
-                                    {filteredPelangganList.map(pelanggan => (
+                                    {finalFilteredPelangganList.map(pelanggan => (
                                         pelanggan.latitude && pelanggan.longitude && (
                                             <CustomerMarker
                                                 key={pelanggan.id}
@@ -295,8 +425,8 @@ const Map = () => {
                                     ))}
                                     {/* ----------------------------- */}
 
-                                    {!flyToPosition && filteredPelangganList.filter(p => p.latitude && p.longitude).length > 0 &&
-                                        <FitBounds points={filteredPelangganList.filter(p => p.latitude && p.longitude).map(p => [p.latitude, p.longitude])} />}
+                                    {!flyToPosition && finalFilteredPelangganList.filter(p => p.latitude && p.longitude).length > 0 &&
+                                        <FitBounds points={finalFilteredPelangganList.filter(p => p.latitude && p.longitude).map(p => [p.latitude, p.longitude])} />}
                                     {flyToPosition && <FlyToLocation position={flyToPosition} />}
                                 </MapContainer>
                             </div>

@@ -229,8 +229,15 @@ const Map = () => {
 
     const finalFilteredPelangganList = filteredPelangganList.filter(applyLocationFilters);
 
+    // Count for each status
     const activeCount = pelangganList.filter(p => p.status_pelanggan === 'aktif').length;
     const inactiveCount = pelangganList.filter(p => p.status_pelanggan === 'tidak aktif').length;
+    const bongkarCount = pelangganList.filter(p => p.status_pelanggan === 'bongkar').length;
+    const bongkarAdmCount = pelangganList.filter(p => p.status_pelanggan === 'bongkar adm').length;
+    const daftarPemasanganCount = pelangganList.filter(p => p.status_pelanggan === 'daftar pemasangan').length;
+    const penonaktifanCount = pelangganList.filter(p => p.status_pelanggan === 'penonaktifan').length;
+    const penyambunganKembaliCount = pelangganList.filter(p => p.status_pelanggan === 'penyambungan kembali').length;
+    const siapSambungCount = pelangganList.filter(p => p.status_pelanggan === 'siap sambung').length;
 
     return (
         <>
@@ -316,6 +323,12 @@ const Map = () => {
                             <option value="all">Semua Status</option>
                             <option value="aktif">Aktif ({activeCount})</option>
                             <option value="tidak aktif">Tidak Aktif ({inactiveCount})</option>
+                            <option value="bongkar">Bongkar ({bongkarCount})</option>
+                            <option value="bongkar adm">Bongkar ADM ({bongkarAdmCount})</option>
+                            <option value="daftar pemasangan">Daftar Pemasangan ({daftarPemasanganCount})</option>
+                            <option value="penonaktifan">Penonaktifan ({penonaktifanCount})</option>
+                            <option value="penyambungan kembali">Penyambungan Kembali ({penyambunganKembaliCount})</option>
+                            <option value="siap sambung">Siap Sambung ({siapSambungCount})</option>
                         </select>
 
                         {/* Location Filters */}

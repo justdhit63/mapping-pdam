@@ -71,9 +71,40 @@ const List = () => {
         }
     };
 
+    // Helper function untuk mendapatkan styling status
+    const getStatusStyle = (status) => {
+        const statusStyles = {
+            'aktif': 'bg-green-100 text-green-800',
+            'tidak aktif': 'bg-red-100 text-red-800',
+            'bongkar': 'bg-orange-100 text-orange-800',
+            'bongkar adm': 'bg-orange-200 text-orange-900',
+            'daftar pemasangan': 'bg-blue-100 text-blue-800',
+            'penonaktifan': 'bg-gray-100 text-gray-800',
+            'penyambungan kembali': 'bg-purple-100 text-purple-800',
+            'siap sambung': 'bg-cyan-100 text-cyan-800'
+        };
+        return statusStyles[status] || 'bg-gray-100 text-gray-800';
+    };
+
+    // Daftar status yang tersedia
+    const statusOptions = [
+        'aktif',
+        'tidak aktif',
+        'bongkar',
+        'bongkar adm',
+        'daftar pemasangan',
+        'penonaktifan',
+        'penyambungan kembali',
+        'siap sambung'
+    ];
+
     // Fungsi untuk mengubah status pelanggan
     const handleStatusToggle = async (pelangganId, currentStatus) => {
-        const newStatus = currentStatus === 'aktif' ? 'tidak aktif' : 'aktif';
+        // Cycle ke status berikutnya
+        const currentIndex = statusOptions.indexOf(currentStatus || 'aktif');
+        const nextIndex = (currentIndex + 1) % statusOptions.length;
+        const newStatus = statusOptions[nextIndex];
+        
         const confirmMessage = `Apakah anda yakin ingin mengubah status menjadi "${newStatus}"?`;
 
         const isConfirm = window.confirm(confirmMessage);
@@ -148,10 +179,7 @@ const List = () => {
                                                         </div>
                                                         <h5 className='text-gray-600 text-sm'>{pelanggan.alamat}</h5>
                                                         <div className="mt-2 flex justify-between items-center">
-                                                            <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${pelanggan.status_pelanggan === 'aktif'
-                                                                    ? 'bg-green-100 text-green-800'
-                                                                    : 'bg-red-100 text-red-800'
-                                                                }`}>
+                                                            <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getStatusStyle(pelanggan.status_pelanggan || 'aktif')}`}>
                                                                 {pelanggan.status_pelanggan || 'aktif'}
                                                             </span>
                                                         </div>
@@ -165,13 +193,10 @@ const List = () => {
                                                             e.stopPropagation();
                                                             handleStatusToggle(pelanggan.id, pelanggan.status_pelanggan || 'aktif');
                                                         }}
-                                                        className={`px-4 py-2 font-medium rounded-md text-sm transition-all duration-200 ${(pelanggan.status_pelanggan || 'aktif') === 'aktif'
-                                                                ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                                                                : 'bg-green-100 text-green-700 hover:bg-green-200'
-                                                            }`}
-                                                        title={`Ubah status menjadi ${(pelanggan.status_pelanggan || 'aktif') === 'aktif' ? 'tidak aktif' : 'aktif'}`}
+                                                        className="px-4 py-2 font-medium rounded-md text-sm transition-all duration-200 bg-blue-100 text-blue-700 hover:bg-blue-200"
+                                                        title="Ubah status pelanggan (cycle)"
                                                     >
-                                                        {(pelanggan.status_pelanggan || 'aktif') === 'aktif' ? 'Nonaktifkan' : 'Aktifkan'}
+                                                        Ubah Status
                                                     </button>
                                                 <Link to={`/daftar-pelanggan/edit-pelanggan/${pelanggan.id}`}>
                                                     <button

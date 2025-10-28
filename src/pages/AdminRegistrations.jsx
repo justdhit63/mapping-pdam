@@ -20,7 +20,6 @@ const AdminRegistrations = () => {
         tanggal_pemasangan: '',
         distribusi: '',
         sumber: '',
-        kondisi_meter: 'baik',
         kondisi_lingkungan: 'bersih',
         kategori: 'jadwal harian',
         rejected_reason: ''
@@ -63,7 +62,6 @@ const AdminRegistrations = () => {
                 tanggal_pemasangan: formData.tanggal_pemasangan || null,
                 distribusi: formData.distribusi || null,
                 sumber: formData.sumber || null,
-                kondisi_meter: formData.kondisi_meter || 'baik',
                 kondisi_lingkungan: formData.kondisi_lingkungan || 'bersih',
                 kategori: formData.kategori || 'jadwal harian'
             };
@@ -113,7 +111,6 @@ const AdminRegistrations = () => {
             tanggal_pemasangan: '',
             distribusi: '',
             sumber: '',
-            kondisi_meter: 'baik',
             kondisi_lingkungan: 'bersih',
             kategori: 'jadwal harian',
             rejected_reason: ''
@@ -427,15 +424,19 @@ const AdminRegistrations = () => {
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Jenis Meter
+                                                Status Layanan *
                                             </label>
-                                            <input
-                                                type="text"
+                                            <select
                                                 value={formData.jenis_meter}
                                                 onChange={(e) => setFormData({...formData, jenis_meter: e.target.value})}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                                                placeholder="Analog/Digital"
-                                            />
+                                                required
+                                            >
+                                                <option value="">Pilih Status Layanan</option>
+                                                <option value="bisa di layani">Bisa Di Layani</option>
+                                                <option value="daftar tunggu">Daftar Tunggu</option>
+                                                <option value="tidak bisa dilayani">Tidak Bisa Dilayani</option>
+                                            </select>
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -447,20 +448,6 @@ const AdminRegistrations = () => {
                                                 onChange={(e) => setFormData({...formData, tanggal_pemasangan: e.target.value})}
                                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                                             />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Kondisi Meter
-                                            </label>
-                                            <select
-                                                value={formData.kondisi_meter}
-                                                onChange={(e) => setFormData({...formData, kondisi_meter: e.target.value})}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                                            >
-                                                <option value="baik">Baik</option>
-                                                <option value="rusak">Rusak</option>
-                                                <option value="perlu_perbaikan">Perlu Perbaikan</option>
-                                            </select>
                                         </div>
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">

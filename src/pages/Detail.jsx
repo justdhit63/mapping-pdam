@@ -197,7 +197,7 @@ const Detail = () => {
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-sm font-medium text-gray-600 mb-1">Jenis Meter</label>
+                                <label className="block text-sm font-medium text-gray-600 mb-1">Status Layanan</label>
                                 <p className="text-gray-800">{pelanggan.jenis_meter || '-'}</p>
                             </div>
                             
@@ -224,6 +224,41 @@ const Detail = () => {
                             <div>
                                 <label className="block text-sm font-medium text-gray-600 mb-1">Sumber</label>
                                 <p className="text-gray-800">{pelanggan.sumber || '-'}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Informasi Water Meter */}
+                    <div className="bg-white rounded-lg shadow-lg p-6">
+                        <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <FaMapMarkerAlt className="text-blue-500" />
+                            Informasi Water Meter
+                        </h2>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-600 mb-1">Stand Meter</label>
+                                <p className="text-gray-800">{pelanggan.stand_meter || '-'}</p>
+                            </div>
+                            
+                            <div>
+                                <label className="block text-sm font-medium text-gray-600 mb-1">Nomer Water Meter</label>
+                                <p className="text-gray-800">{pelanggan.nomer_water_meter || '-'}</p>
+                            </div>
+                            
+                            <div>
+                                <label className="block text-sm font-medium text-gray-600 mb-1">Merk Meter</label>
+                                <p className="text-gray-800">{pelanggan.merk_meter || '-'}</p>
+                            </div>
+                            
+                            <div>
+                                <label className="block text-sm font-medium text-gray-600 mb-1">Ukuran Water Meter</label>
+                                <p className="text-gray-800">{pelanggan.ukuran_water_meter || '-'}</p>
+                            </div>
+                            
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-medium text-gray-600 mb-1">Kondisi Water Meter</label>
+                                <p className="text-gray-800">{pelanggan.kondisi_water_meter || '-'}</p>
                             </div>
                         </div>
                     </div>

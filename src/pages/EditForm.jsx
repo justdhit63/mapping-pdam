@@ -39,7 +39,12 @@ const EditForm = () => {
         kondisi_meter: '',
         kondisi_lingkungan: '',
         kategori: '',
-        status_pelanggan: 'aktif'
+        status_pelanggan: 'aktif',
+        stand_meter: '',
+        nomer_water_meter: '',
+        merk_meter: '',
+        ukuran_water_meter: '',
+        kondisi_water_meter: '',
     });
 
     // State untuk manajemen UI
@@ -358,8 +363,19 @@ const EditForm = () => {
                                     <input type="number" name="jumlah_jiwa" value={formData.jumlah_jiwa || ''} onChange={handleChange} className='border w-full border-blue-400 px-4 py-2 rounded-lg' required />
                                 </div>
                                 <div className="w-full shadow-md">
-                                    <h1 className='mb-2'>Jenis Meter Air</h1>
-                                    <input type="text" name="jenis_meter" value={formData.jenis_meter || ''} onChange={handleChange} className='border w-full border-blue-400 px-4 py-2 rounded-lg' required />
+                                    <h1 className='mb-2'>Status Layanan</h1>
+                                    <select 
+                                        name="jenis_meter" 
+                                        value={formData.jenis_meter || ''} 
+                                        onChange={handleChange} 
+                                        className='border w-full border-blue-400 px-4 py-2 rounded-lg' 
+                                        required
+                                    >
+                                        <option value="">Pilih Status Layanan</option>
+                                        <option value="bisa di layani">Bisa Di Layani</option>
+                                        <option value="daftar tunggu">Daftar Tunggu</option>
+                                        <option value="tidak bisa dilayani">Tidak Bisa Dilayani</option>
+                                    </select>
                                 </div>
                                 <div className="w-full shadow-md">
                                     <h1 className='mb-2'>Tanggal Pemasangan</h1>
@@ -522,6 +538,92 @@ const EditForm = () => {
                                 </div>
                             </div>
 
+                            {/* Water Meter Information */}
+                            <h1 className="mb-2 font-semibold text-lg">Informasi Water Meter</h1>
+                            <div className="sm:flex gap-4 mb-4 p-4 border border-gray-200 shadow-sm rounded-lg">
+                                <div className="w-full shadow-md">
+                                    <h1 className='mb-2'>Stand Meter</h1>
+                                    <input
+                                        type="text"
+                                        name="stand_meter"
+                                        value={formData.stand_meter || ''}
+                                        onChange={handleChange}
+                                        className='border w-full border-blue-400 px-4 py-2 rounded-lg'
+                                        placeholder="Masukkan stand meter..."
+                                    />
+                                </div>
+                                <div className="w-full shadow-md">
+                                    <h1 className='mb-2'>Nomer Water Meter</h1>
+                                    <input
+                                        type="text"
+                                        name="nomer_water_meter"
+                                        value={formData.nomer_water_meter || ''}
+                                        onChange={handleChange}
+                                        className='border w-full border-blue-400 px-4 py-2 rounded-lg'
+                                        placeholder="Masukkan nomer water meter..."
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="sm:flex gap-4 mb-4 p-4 border border-gray-200 shadow-sm rounded-lg">
+                                <div className="w-full shadow-md">
+                                    <h1 className='mb-2'>Merk Meter</h1>
+                                    <select
+                                        name="merk_meter"
+                                        value={formData.merk_meter || ''}
+                                        onChange={handleChange}
+                                        className='border w-full border-blue-400 px-4 py-2 rounded-lg'
+                                    >
+                                        <option value="">Pilih Merk Meter</option>
+                                        <option value="Aktari">Aktari</option>
+                                        <option value="Onda">Onda</option>
+                                        <option value="Linflow">Linflow</option>
+                                        <option value="Pameterindo">Pameterindo</option>
+                                        <option value="Barindo">Barindo</option>
+                                        <option value="Itron">Itron</option>
+                                        <option value="Century">Century</option>
+                                        <option value="IVZ">IVZ</option>
+                                        <option value="WESTCHAUST">WESTCHAUST</option>
+                                        <option value="AIR INDO">AIR INDO</option>
+                                        <option value="NB">NB</option>
+                                        <option value="AMICO">AMICO</option>
+                                        <option value="RVT">RVT</option>
+                                        <option value="PUJI">PUJI</option>
+                                        <option value="LOUIS VICTOR">LOUIS VICTOR</option>
+                                        <option value="ISOA">ISOA</option>
+                                    </select>
+                                </div>
+                                <div className="w-full shadow-md">
+                                    <h1 className='mb-2'>Ukuran Water Meter</h1>
+                                    <select
+                                        name="ukuran_water_meter"
+                                        value={formData.ukuran_water_meter || ''}
+                                        onChange={handleChange}
+                                        className='border w-full border-blue-400 px-4 py-2 rounded-lg'
+                                    >
+                                        <option value="">Pilih Ukuran</option>
+                                        <option value="1/2 inch">1/2 inch</option>
+                                        <option value="3/4 inch">3/4 inch</option>
+                                        <option value="1 inch">1 inch</option>
+                                        <option value="2 inch">2 inch</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="sm:flex gap-4 mb-4 p-4 border border-gray-200 shadow-sm rounded-lg">
+                                <div className="w-full shadow-md">
+                                    <h1 className='mb-2'>Kondisi Water Meter</h1>
+                                    <textarea
+                                        name="kondisi_water_meter"
+                                        value={formData.kondisi_water_meter || ''}
+                                        onChange={handleChange}
+                                        className='border w-full border-blue-400 px-4 py-2 rounded-lg'
+                                        rows="3"
+                                        placeholder="Masukkan kondisi water meter..."
+                                    />
+                                </div>
+                            </div>
+
                             <div className="sm:flex gap-4 mb-4 p-4 border border-gray-200 shadow-sm rounded-lg">
                                 <div className="w-full shadow-md">
                                     <h1 className='mb-2'>Kategori *</h1>
@@ -548,6 +650,12 @@ const EditForm = () => {
                                     >
                                         <option value="aktif">Aktif</option>
                                         <option value="tidak aktif">Tidak Aktif</option>
+                                        <option value="bongkar">Bongkar</option>
+                                        <option value="bongkar adm">Bongkar ADM</option>
+                                        <option value="daftar pemasangan">Daftar Pemasangan</option>
+                                        <option value="penonaktifan">Penonaktifan</option>
+                                        <option value="penyambungan kembali">Penyambungan Kembali</option>
+                                        <option value="siap sambung">Siap Sambung</option>
                                     </select>
                                 </div>
                             </div>

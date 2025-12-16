@@ -8,13 +8,15 @@ import KecamatanManagement from '../components/KecamatanManagement';
 import RayonManagement from '../components/RayonManagement';
 import GolonganManagement from '../components/GolonganManagement';
 import KelompokManagement from '../components/KelompokManagement';
-import { getAllPelangganAdmin, getUserStats } from '../services/adminService.js';
-import { isAdmin } from '../services/authService.js';
+import { pelangganService, usersService } from '../services/supabaseServices';
+import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { FaUsers, FaCrown, FaUser, FaMapMarkedAlt, FaUserCog, FaChartBar, FaUserPlus, FaBuilding, FaTree, FaMapMarked, FaDatabase, FaTags, FaLayerGroup } from 'react-icons/fa';
 
 const AdminPanel = () => {
+    const { isAdmin } = useAuth();
     const [allPelanggan, setAllPelanggan] = useState([]);
+    const [users, setUsers] = useState([]);
     const [userStats, setUserStats] = useState(null);
     const [summary, setSummary] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -29,27 +31,33 @@ const AdminPanel = () => {
         }
 
         fetchAdminData();
-    }, [navigate]);
+    }, [navigate, isAdmin]);
 
     const fetchAdminData = async () => {
         setLoading(true);
         try {
-            // Fetch all pelanggan
-            const { data: pelangganData, error: pelangganError } = await getAllPelangganAdmin();
-            if (pelangganError) {
-                console.error('Error fetching pelanggan:', pelangganError);
-            } else {
-                setAllPelanggan(pelangganData);
-            }
+            // Fetch all pelanggan (RLS will allow admin to see all)
+            const pelangganData = await pelangganService.getAll();
+            setAllPelanggan(pelangganData || []);
 
             // Fetch user stats
-            const { data: statsData, error: statsError } = await getUserStats();
-            if (statsError) {
-                console.error('Error fetching stats:', statsError);
-            } else {
-                setUserStats(statsData.userStats);
-                setSummary(statsData.summary);
-            }
+            const statsData = await usersService.getStats();
+            setUserStats(statsData.userStats || {});
+            setSummary(statsData.summary || {});
+
+            // Fetch all users with pelanggan count
+            const usersData = await usersService.getAll();
+            
+            // Calculate pelanggan count for each user
+            const usersWithStats = usersData.map(user => {
+                const userPelanggan = pelangganData.filter(p => p.user_id === user.id);
+                return {
+                    ...user,
+                    total_pelanggan: userPelanggan.length
+                };
+            });
+            
+            setUsers(usersWithStats);
         } catch (error) {
             console.error('Error fetching admin data:', error);
         } finally {
@@ -261,7 +269,7 @@ const AdminPanel = () => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {userStats && userStats.map((user) => (
+                                        {users && users.map((user) => (
                                             <tr key={user.id} className="border-b hover:bg-gray-50">
                                                 <td className="px-4 py-3">{user.email}</td>
                                                 <td className="px-4 py-3">

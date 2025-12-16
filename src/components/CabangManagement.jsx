@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-    getAllCabang,
-    createCabang,
-    deleteCabang,
-    toggleCabangStatus,
-    getUsersWithoutCabang,
-    assignUserToCabang,
-    bulkAssignUsersToCabang
-} from '../services/cabangService';
+import { cabangService, usersService } from '../services/supabaseServices';
 
 const CabangManagement = () => {
     const [cabangData, setCabangData] = useState([]);
@@ -40,14 +32,11 @@ const CabangManagement = () => {
     const loadCabangData = async () => {
         try {
             setLoading(true);
-            const { data, error } = await getAllCabang();
-            if (error) {
-                console.error('Error fetching cabang:', error);
-            } else {
-                setCabangData(data);
-            }
+            const data = await cabangService.getAll();
+            setCabangData(data || []);
         } catch (error) {
             console.error('Error loading cabang data:', error);
+            setCabangData([]);
         } finally {
             setLoading(false);
         }
@@ -55,14 +44,11 @@ const CabangManagement = () => {
 
     const loadUsersWithoutCabang = async () => {
         try {
-            const { data, error } = await getUsersWithoutCabang();
-            if (error) {
-                console.error('Error fetching unassigned users:', error);
-            } else {
-                setUsersWithoutCabang(data);
-            }
+            const data = await usersService.getUsersWithoutCabang();
+            setUsersWithoutCabang(data || []);
         } catch (error) {
             console.error('Error loading unassigned users:', error);
+            setUsersWithoutCabang([]);
         }
     };
 
@@ -70,18 +56,14 @@ const CabangManagement = () => {
     const handleCreateCabang = async (e) => {
         e.preventDefault();
         try {
-            const { data, error } = await createCabang(formData);
-            if (error) {
-                alert(`Error: ${error}`);
-            } else {
-                setShowCreateForm(false);
-                setFormData({ kode_unit: '', nama_unit: '', alamat: '', telepon: '' });
-                loadCabangData();
-                alert('Cabang created successfully!');
-            }
+            await cabangService.create(formData);
+            setShowCreateForm(false);
+            setFormData({ kode_unit: '', nama_unit: '', alamat: '', telepon: '' });
+            loadCabangData();
+            alert('Cabang created successfully!');
         } catch (error) {
             console.error('Error creating cabang:', error);
-            alert('Error creating cabang');
+            alert('Error creating cabang: ' + error.message);
         }
     };
 
@@ -89,19 +71,15 @@ const CabangManagement = () => {
     const handleAssignUser = async (e) => {
         e.preventDefault();
         try {
-            const { data, error } = await assignUserToCabang(assignData);
-            if (error) {
-                alert(`Error: ${error}`);
-            } else {
-                setShowAssignForm(false);
-                setAssignData({ user_id: '', cabang_id: '' });
-                loadCabangData();
-                loadUsersWithoutCabang();
-                alert('User assigned successfully!');
-            }
+            await usersService.assignUserToCabang(assignData.user_id, assignData.cabang_id);
+            setShowAssignForm(false);
+            setAssignData({ user_id: '', cabang_id: '' });
+            loadCabangData();
+            loadUsersWithoutCabang();
+            alert('User assigned successfully!');
         } catch (error) {
             console.error('Error assigning user:', error);
-            alert('Error assigning user');
+            alert('Error assigning user: ' + error.message);
         }
     };
 
@@ -113,39 +91,27 @@ const CabangManagement = () => {
         }
 
         try {
-            const { data, error } = await bulkAssignUsersToCabang({
-                user_ids: selectedUsers,
-                cabang_id: assignData.cabang_id
-            });
-            
-            if (error) {
-                alert(`Error: ${error}`);
-            } else {
-                setSelectedUsers([]);
-                setAssignData({ user_id: '', cabang_id: '' });
-                loadCabangData();
-                loadUsersWithoutCabang();
-                alert('Users assigned successfully!');
-            }
+            await usersService.bulkAssignUsersToCabang(selectedUsers, assignData.cabang_id);
+            setSelectedUsers([]);
+            setAssignData({ user_id: '', cabang_id: '' });
+            loadCabangData();
+            loadUsersWithoutCabang();
+            alert('Users assigned successfully!');
         } catch (error) {
             console.error('Error bulk assigning users:', error);
-            alert('Error bulk assigning users');
+            alert('Error bulk assigning users: ' + error.message);
         }
     };
 
     // Handle toggle cabang status
     const handleToggleStatus = async (cabangId) => {
         try {
-            const { data, error } = await toggleCabangStatus(cabangId);
-            if (error) {
-                alert(`Error: ${error}`);
-            } else {
-                loadCabangData();
-                alert('Cabang status updated!');
-            }
+            await cabangService.toggleStatus(cabangId);
+            loadCabangData();
+            alert('Cabang status updated!');
         } catch (error) {
             console.error('Error toggling status:', error);
-            alert('Error updating status');
+            alert('Error updating status: ' + error.message);
         }
     };
 
@@ -153,17 +119,13 @@ const CabangManagement = () => {
     const handleDeleteCabang = async (cabangId, cabangName) => {
         if (window.confirm(`Are you sure you want to delete "${cabangName}"? This will remove cabang assignment from all users in this cabang.`)) {
             try {
-                const { data, error } = await deleteCabang(cabangId);
-                if (error) {
-                    alert(`Error: ${error}`);
-                } else {
-                    loadCabangData();
-                    loadUsersWithoutCabang();
-                    alert('Cabang deleted successfully!');
-                }
+                await cabangService.delete(cabangId);
+                loadCabangData();
+                loadUsersWithoutCabang();
+                alert('Cabang deleted successfully!');
             } catch (error) {
                 console.error('Error deleting cabang:', error);
-                alert('Error deleting cabang');
+                alert('Error deleting cabang: ' + error.message);
             }
         }
     };

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import { getAllPelanggan } from '../services/pelangganService.js';
+import { pelangganService } from '../services/supabaseServices.js';
 import { FaArrowLeft, FaMapMarkerAlt, FaEdit, FaCalendar, FaPhone, FaHome, FaUsers, FaTint, FaBuilding, FaMapPin } from 'react-icons/fa';
 
 const Detail = () => {
@@ -14,19 +14,8 @@ const Detail = () => {
         const fetchPelangganDetail = async () => {
             setLoading(true);
             try {
-                const { data, error } = await getAllPelanggan();
-                
-                if (error) {
-                    throw new Error(error.message || 'Gagal mengambil data pelanggan');
-                }
-
-                const foundPelanggan = data.find(p => p.id === parseInt(id));
-                
-                if (!foundPelanggan) {
-                    throw new Error('Pelanggan tidak ditemukan');
-                }
-
-                setPelanggan(foundPelanggan);
+                const data = await pelangganService.getById(parseInt(id));
+                setPelanggan(data);
             } catch (error) {
                 console.error('Error fetching pelanggan detail:', error);
                 alert('Error: ' + error.message);

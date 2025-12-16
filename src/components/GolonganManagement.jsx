@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaToggleOn, FaToggleOff, FaUsers, FaTags, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
-import golonganService from '../services/golonganService';
+import { golonganService } from '../services/supabaseServices';
 
 const GolonganManagement = () => {
     const [golongan, setGolongan] = useState([]);
@@ -21,10 +21,8 @@ const GolonganManagement = () => {
     const fetchGolongan = async () => {
         try {
             setLoading(true);
-            const response = await golonganService.getAllGolongan();
-            if (response.success) {
-                setGolongan(response.data);
-            }
+            const data = await golonganService.getAll();
+            setGolongan(data || []);
         } catch (error) {
             console.error('Error fetching golongan:', error);
         } finally {
@@ -34,10 +32,8 @@ const GolonganManagement = () => {
 
     const fetchStats = async () => {
         try {
-            const response = await golonganService.getGolonganStats();
-            if (response.success) {
-                setStats(response.data);
-            }
+            const data = await golonganService.getStatistics();
+            setStats(data || {});
         } catch (error) {
             console.error('Error fetching stats:', error);
         }
@@ -47,9 +43,9 @@ const GolonganManagement = () => {
         e.preventDefault();
         try {
             if (editingGolongan) {
-                await golonganService.updateGolongan(editingGolongan.id, formData);
+                await golonganService.update(editingGolongan.id, formData);
             } else {
-                await golonganService.createGolongan(formData);
+                await golonganService.create(formData);
             }
             fetchGolongan();
             fetchStats();
@@ -72,7 +68,7 @@ const GolonganManagement = () => {
     const handleDelete = async (id) => {
         if (window.confirm('Are you sure you want to delete this golongan?')) {
             try {
-                await golonganService.deleteGolongan(id);
+                await golonganService.delete(id);
                 fetchGolongan();
                 fetchStats();
             } catch (error) {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaToggleOn, FaToggleOff, FaUsers, FaTags, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
-import kelompokService from '../services/kelompokService';
+import { kelompokService } from '../services/supabaseServices';
 
 const KelompokManagement = () => {
     const [kelompok, setKelompok] = useState([]);
@@ -21,10 +21,8 @@ const KelompokManagement = () => {
     const fetchKelompok = async () => {
         try {
             setLoading(true);
-            const response = await kelompokService.getAllKelompok();
-            if (response.success) {
-                setKelompok(response.data);
-            }
+            const data = await kelompokService.getAll();
+            setKelompok(data || []);
         } catch (error) {
             console.error('Error fetching kelompok:', error);
         } finally {
@@ -34,10 +32,8 @@ const KelompokManagement = () => {
 
     const fetchStats = async () => {
         try {
-            const response = await kelompokService.getKelompokStats();
-            if (response.success) {
-                setStats(response.data);
-            }
+            const data = await kelompokService.getStatistics();
+            setStats(data || {});
         } catch (error) {
             console.error('Error fetching stats:', error);
         }
@@ -47,9 +43,9 @@ const KelompokManagement = () => {
         e.preventDefault();
         try {
             if (editingKelompok) {
-                await kelompokService.updateKelompok(editingKelompok.id, formData);
+                await kelompokService.update(editingKelompok.id, formData);
             } else {
-                await kelompokService.createKelompok(formData);
+                await kelompokService.create(formData);
             }
             await fetchKelompok();
             await fetchStats();
@@ -72,7 +68,7 @@ const KelompokManagement = () => {
     const handleDelete = async (id) => {
         if (window.confirm('Are you sure you want to delete this kelompok?')) {
             try {
-                await kelompokService.deleteKelompok(id);
+                await kelompokService.delete(id);
                 await fetchKelompok();
                 await fetchStats();
             } catch (error) {

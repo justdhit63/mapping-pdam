@@ -4,20 +4,17 @@ import React, { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 import Header from '../components/Header';
 import { FaFloppyDisk } from 'react-icons/fa6';
-import { getAllPelanggan, updatePelanggan, getAvailableCabang } from '../services/pelangganService.js';
-import { getAvailableDesa } from '../services/desaService.js';
-import { getKecamatanByDesaId } from '../services/kecamatanService.js';
-import rayonService from '../services/rayonService.js';
-import golonganService from '../services/golonganService.js';
-import kelompokService from '../services/kelompokService.js';
+import { pelangganService, cabangService, desaService, rayonService, golonganService, kelompokService } from '../services/supabaseServices.js';
+import { storageService } from '../services/storageService.js';
+import { useAuth } from '../contexts/AuthContext.jsx';
 import { useNavigate, useParams } from 'react-router-dom';
 import MapPicker from '../components/MapPicker';
-import apiClient from '../services/apiClient.js';
 
 const EditForm = () => {
     // Mengambil ID pelanggan dari parameter URL
     const { id } = useParams();
     const navigate = useNavigate();
+    const { user, profile } = useAuth();
 
     // State untuk menampung semua data dari form
     const [formData, setFormData] = useState({
@@ -63,28 +60,25 @@ const EditForm = () => {
         const fetchPelangganData = async () => {
             setLoading(true);
             try {
-                const response = await apiClient.get(`/pelanggan/${id}`);
-                const data = response.data;
-                if (data) {
-                    // Debug logging for longitude issue
-                    console.log('Raw data from API:', data);
-                    console.log('Original longitude:', data.longitude, 'type:', typeof data.longitude);
-                    console.log('Original latitude:', data.latitude, 'type:', typeof data.latitude);
-                    
-                    // Sanitize numeric fields with better handling
-                    const sanitizedData = {
-                        ...data,
-                        longitude: data.longitude === null || data.longitude === undefined || data.longitude === 99.999999 ? '' : parseFloat(data.longitude),
-                        latitude: data.latitude === null || data.latitude === undefined ? '' : parseFloat(data.latitude),
-                        jumlah_jiwa: data.jumlah_jiwa === null || data.jumlah_jiwa === undefined ? '' : data.jumlah_jiwa,
-                        // Ensure tanggal_pemasangan is in correct format for date input
-                        tanggal_pemasangan: data.tanggal_pemasangan ? data.tanggal_pemasangan.split('T')[0] : ''
-                    };
-                    
-                    console.log('Sanitized longitude:', sanitizedData.longitude);
-                    console.log('Sanitized latitude:', sanitizedData.latitude);
-                    setFormData(sanitizedData);
-                }
+                const data = await pelangganService.getById(parseInt(id));
+                
+                // Sanitize numeric fields
+                const sanitizedData = {
+                    ...data,
+                    longitude: data.longitude === null || data.longitude === undefined || data.longitude === 99.999999 ? '' : parseFloat(data.longitude),
+                    latitude: data.latitude === null || data.latitude === undefined ? '' : parseFloat(data.latitude),
+                    jumlah_jiwa: data.jumlah_jiwa === null || data.jumlah_jiwa === undefined ? '' : data.jumlah_jiwa,
+                    // Ensure tanggal_pemasangan is in correct format for date input
+                    tanggal_pemasangan: data.tanggal_pemasangan ? data.tanggal_pemasangan.split('T')[0] : '',
+                    cabang_id: data.cabang_id || '',
+                    desa_id: data.desa_id || '',
+                    kecamatan_id: data.kecamatan_id || '',
+                    rayon_id: data.rayon_id || '',
+                    golongan_id: data.golongan_id || '',
+                    kelompok_id: data.kelompok_id || '',
+                };
+                
+                setFormData(sanitizedData);
             } catch (error) {
                 console.error('Error Fetching Data: ', error);
                 alert('Gagal memuat data pelanggan.');
@@ -96,60 +90,46 @@ const EditForm = () => {
 
         const loadCabangList = async () => {
             try {
-                const { data, error } = await getAvailableCabang();
-                if (error) {
-                    console.error('Error loading cabang:', error);
-                } else {
-                    setCabangList(data || []);
-                }
+                const data = await cabangService.getAll();
+                setCabangList(data || []);
             } catch (error) {
-                console.error('Error loading cabang list:', error);
+                console.error('Error loading cabang:', error);
             }
         };
 
         const loadDesaList = async () => {
             try {
-                const { data, error } = await getAvailableDesa();
-                if (error) {
-                    console.error('Error loading desa:', error);
-                } else {
-                    setDesaList(data || []);
-                }
+                const data = await desaService.getAll();
+                setDesaList(data || []);
             } catch (error) {
-                console.error('Error loading desa list:', error);
+                console.error('Error loading desa:', error);
             }
         };
 
         const loadRayonList = async () => {
             try {
-                const response = await rayonService.getAvailableRayon();
-                if (response.success) {
-                    setRayonList(response.data || []);
-                }
+                const data = await rayonService.getAll();
+                setRayonList(data || []);
             } catch (error) {
-                console.error('Error loading rayon list:', error);
+                console.error('Error loading rayon:', error);
             }
         };
 
         const loadGolonganList = async () => {
             try {
-                const response = await golonganService.getAvailableGolongan();
-                if (response.success) {
-                    setGolonganList(response.data || []);
-                }
+                const data = await golonganService.getAll();
+                setGolonganList(data || []);
             } catch (error) {
-                console.error('Error loading golongan list:', error);
+                console.error('Error loading golongan:', error);
             }
         };
 
         const loadKelompokList = async () => {
             try {
-                const response = await kelompokService.getKelompokDropdown();
-                if (response.success) {
-                    setKelompokList(response.data || []);
-                }
+                const data = await kelompokService.getAll();
+                setKelompokList(data || []);
             } catch (error) {
-                console.error('Error loading kelompok list:', error);
+                console.error('Error loading kelompok:', error);
             }
         };
 
@@ -287,37 +267,45 @@ const EditForm = () => {
         setLoading(true);
 
         try {
-            // Debug logging before sending
-            console.log('FormData before sending:', formData);
-            console.log('Longitude before sending:', formData.longitude, 'type:', typeof formData.longitude);
-            console.log('Latitude before sending:', formData.latitude, 'type:', typeof formData.latitude);
-            
-            // Buat FormData untuk mengirim file dan data lainnya
-            const formDataToSend = new FormData();
-            
-            // Append semua field form kecuali id dan created_at
-            Object.keys(formData).forEach(key => {
-                if (key !== 'id' && key !== 'created_at' && key !== 'foto_rumah_url') {
-                    console.log(`Appending ${key}:`, formData[key]);
-                    formDataToSend.append(key, formData[key]);
-                }
-            });
-            
-            // Append file baru jika ada
+            let updatedFotoUrl = formData.foto_rumah_url;
+
+            // Handle foto update if new file exists
             if (newFile) {
-                formDataToSend.append('foto_rumah', newFile);
+                const validation = storageService.validateFile(newFile);
+                if (!validation.valid) {
+                    throw new Error(validation.error);
+                }
+                // Update foto (will delete old and upload new)
+                updatedFotoUrl = await storageService.updateFoto(newFile, formData.foto_rumah_url);
             }
 
-            const { data, error } = await updatePelanggan(id, formDataToSend);
+            // Prepare pelanggan data
+            const pelangganData = {
+                id_pelanggan: formData.id_pelanggan,
+                nama_pelanggan: formData.nama_pelanggan,
+                no_telpon: formData.no_telpon,
+                alamat: formData.alamat,
+                jumlah_jiwa: formData.jumlah_jiwa ? parseInt(formData.jumlah_jiwa) : null,
+                latitude: formData.latitude ? parseFloat(formData.latitude) : null,
+                longitude: formData.longitude ? parseFloat(formData.longitude) : null,
+                status_layanan: formData.status_layanan,
+                cabang_id: formData.cabang_id ? parseInt(formData.cabang_id) : null,
+                kecamatan_id: formData.kecamatan_id ? parseInt(formData.kecamatan_id) : null,
+                desa_id: formData.desa_id ? parseInt(formData.desa_id) : null,
+                rayon_id: formData.rayon_id ? parseInt(formData.rayon_id) : null,
+                golongan_id: formData.golongan_id ? parseInt(formData.golongan_id) : null,
+                kelompok_id: formData.kelompok_id ? parseInt(formData.kelompok_id) : null,
+                foto_rumah_url: updatedFotoUrl
+            };
 
-            if (error) {
-                throw new Error(error.message || 'Gagal memperbarui data');
-            }
+            // Update pelanggan via Supabase
+            await pelangganService.update(parseInt(id), pelangganData);
 
             alert('Data pelanggan berhasil diperbarui!');
             navigate('/daftar-pelanggan');
 
         } catch (error) {
+            console.error('Error updating pelanggan:', error);
             alert('Error memperbarui data: ' + error.message);
         } finally {
             setLoading(false);

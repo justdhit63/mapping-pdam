@@ -1,54 +1,32 @@
 import React, { useEffect, useState } from 'react'
 import Navbar from '../components/Navbar';
 import { FaUser, FaPlus, FaMap, FaChartLine, FaCrown, FaDatabase } from 'react-icons/fa';
-import { getCurrentUser, getCurrentUserFromStorage } from '../services/authService.js';
-import { getAllPelanggan } from '../services/pelangganService.js';
+import { useAuth } from '../contexts/AuthContext.jsx';
+import { pelangganService } from '../services/supabaseServices.js';
 import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
-    const [user, setUser] = useState(null);
+    const { user, profile, loading: authLoading } = useAuth();
     const [pelangganStats, setPelangganStats] = useState({ total: 0, aktif: 0, tidakAktif: 0 });
     const [recentPelanggan, setRecentPelanggan] = useState([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchUserData = async () => {
-            try {
-                const currentUser = await getCurrentUser();
-                setUser(currentUser);
-                console.log('Current User:', currentUser);
-                
-                if (currentUser) {
-                    loadPelangganData();
-                }
-            } catch (error) {
-                console.error('Error fetching user data:', error);
-                // Fallback ke localStorage
-                const fallbackUser = getCurrentUserFromStorage();
-                setUser(fallbackUser);
-                console.log('Fallback User:', fallbackUser);
-                
-                if (fallbackUser) {
-                    loadPelangganData();
-                }
-            }
-        };
-
-        fetchUserData();
-    }, []);
+        if (user && profile) {
+            loadPelangganData();
+        }
+    }, [user, profile]);
 
     const loadPelangganData = async () => {
         try {
-            const { data, error } = await getAllPelanggan();
-            if (!error && data) {
-                const total = data.length;
-                const aktif = data.filter(p => p.status_pelanggan === 'aktif').length;
-                const tidakAktif = total - aktif;
-                
-                setPelangganStats({ total, aktif, tidakAktif });
-                setRecentPelanggan(data.slice(0, 5)); // 5 pelanggan terbaru
-            }
+            const data = await pelangganService.getAll();
+            const total = data.length;
+            const aktif = data.filter(p => p.status_pelanggan === 'aktif').length;
+            const tidakAktif = total - aktif;
+            
+            setPelangganStats({ total, aktif, tidakAktif });
+            setRecentPelanggan(data.slice(0, 5)); // 5 pelanggan terbaru
         } catch (error) {
             console.error('Error loading pelanggan data:', error);
         } finally {
@@ -56,7 +34,18 @@ const Dashboard = () => {
         }
     };
 
-    if (!user) {
+    if (authLoading || loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!user || !profile) {
         return <div>Loading...</div>;
     }
 
@@ -69,16 +58,16 @@ const Dashboard = () => {
                 <div className="mt-16 mb-8 flex items-center justify-between">
                     <div>
                         <h1 className="text-3xl font-bold text-black">
-                            {user.role === 'admin' ? 'Admin Dashboard' : 'Dashboard'}
+                            {profile.role === 'admin' ? 'Admin Dashboard' : 'Dashboard'}
                         </h1>
                         <p className="text-gray-600 mt-2">
-                            {user.role === 'admin' 
+                            {profile.role === 'admin' 
                                 ? 'Kelola semua aspek sistem PDAM' 
-                                : `Selamat datang, ${user.full_name}`
+                                : `Selamat datang, ${profile.full_name || user.email}`
                             }
                         </p>
                     </div>
-                    {user.role === 'admin' && (
+                    {profile.role === 'admin' && (
                         <div className="flex items-center gap-2 bg-teal-100 px-4 py-2 rounded-lg">
                             <FaCrown className="text-teal-600" />
                             <span className="text-teal-800 font-semibold">Administrator</span>
@@ -87,7 +76,7 @@ const Dashboard = () => {
                 </div>
 
                 {/* Different content based on role */}
-                {user.role === 'admin' ? (
+                {profile.role === 'admin' ? (
                     // Admin Dashboard Content
                     <div className="grid lg:grid-cols-2 gap-6">
                         {/* <div className="bg-white p-6 rounded-lg shadow-md border border-teal-200">

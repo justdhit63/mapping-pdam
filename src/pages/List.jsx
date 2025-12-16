@@ -3,10 +3,13 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import Header from '../components/Header';
 import Navbar from '../components/Navbar';
-import { getAllPelanggan, deletePelanggan, updatePelanggan } from '../services/pelangganService.js';
+import { pelangganService } from '../services/supabaseServices.js';
+import { storageService } from '../services/storageService.js';
+import { useAuth } from '../contexts/AuthContext.jsx';
 import { Link } from 'react-router-dom';
 
 const List = () => {
+    const { user, profile } = useAuth();
     // State untuk menyimpan data asli dari Supabase
     const [allPelanggan, setAllPelanggan] = useState([]);
     // State untuk data yang akan ditampilkan (hasil filter)
@@ -19,15 +22,15 @@ const List = () => {
     // Fungsi untuk mengambil semua data, dibungkus useCallback untuk efisiensi
     const fetchAllData = useCallback(async () => {
         setLoading(true);
-        const { data, error } = await getAllPelanggan();
-
-        if (error) {
-            console.error('Error Fetching Data: ', error);
-        } else {
+        try {
+            const data = await pelangganService.getAll();
             setAllPelanggan(data);
             setFilteredPelanggan(data); // Awalnya, data yang ditampilkan sama dengan semua data
+        } catch (error) {
+            console.error('Error Fetching Data: ', error);
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     }, []);
 
     // Mengambil data saat komponen pertama kali dimuat
@@ -53,14 +56,23 @@ const List = () => {
     }, [searchTerm, allPelanggan]);
 
     // Fungsi untuk menghapus pelanggan
-    const handleDelete = async (pelangganId) => {
+    const handleDelete = async (pelanggan) => {
         const isConfirm = window.confirm('Apakah anda yakin ingin menghapus pelanggan ini?');
         if (!isConfirm) return;
 
         try {
-            const { data, error } = await deletePelanggan(pelangganId);
+            // Hapus foto jika ada
+            if (pelanggan.foto_rumah_url) {
+                try {
+                    await storageService.deleteFoto(pelanggan.foto_rumah_url);
+                } catch (error) {
+                    console.warn('Failed to delete foto:', error);
+                    // Continue with pelanggan deletion even if foto delete fails
+                }
+            }
 
-            if (error) throw new Error(error.message);
+            // Hapus pelanggan
+            await pelangganService.delete(pelanggan.id);
 
             // Setelah berhasil menghapus, ambil ulang data terbaru dari server
             fetchAllData();
@@ -111,13 +123,9 @@ const List = () => {
         if (!isConfirm) return;
 
         try {
-            // Buat FormData untuk update
-            const formData = new FormData();
-            formData.append('status_pelanggan', newStatus);
-
-            const { data, error } = await updatePelanggan(pelangganId, formData);
-
-            if (error) throw new Error(error.message);
+            await pelangganService.update(pelangganId, {
+                status_pelanggan: newStatus
+            });
 
             // Update data lokal untuk UI yang responsive
             setAllPelanggan(prev => prev.map(p =>
@@ -209,7 +217,7 @@ const List = () => {
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        handleDelete(pelanggan.id);
+                                                        handleDelete(pelanggan);
                                                     }}
                                                     className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md text-sm"
                                                 >

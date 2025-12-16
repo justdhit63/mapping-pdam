@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-    getAllUsers,
-    createUser,
-    createBulkUsers,
-    updateUser,
-    deleteUser,
-    deleteBulkUsers,
-    toggleUserStatus
-} from '../services/adminService.js';
+import { usersService } from '../services/supabaseServices';
 
 const UserManagement = () => {
     const [users, setUsers] = useState([]);
@@ -37,11 +29,13 @@ const UserManagement = () => {
 
     const loadUsers = async () => {
         setLoading(true);
-        const result = await getAllUsers();
-        if (result.error) {
-            setError(result.error);
-        } else {
-            setUsers(result.data);
+        try {
+            const data = await usersService.getAll();
+            setUsers(data || []);
+            setError('');
+        } catch (err) {
+            setError(err.message);
+            setUsers([]);
         }
         setLoading(false);
     };
@@ -52,19 +46,18 @@ const UserManagement = () => {
         setError('');
         setSuccess('');
 
-        let result;
-        if (editingUser) {
-            result = await updateUser(editingUser.id, formData);
-        } else {
-            result = await createUser(formData);
-        }
-
-        if (result.error) {
-            setError(result.error);
-        } else {
-            setSuccess(editingUser ? 'User updated successfully!' : 'User created successfully!');
+        try {
+            if (editingUser) {
+                await usersService.update(editingUser.id, formData);
+                setSuccess('User updated successfully!');
+            } else {
+                await usersService.create(formData);
+                setSuccess('User created successfully!');
+            }
             resetForm();
             loadUsers();
+        } catch (err) {
+            setError(err.message);
         }
         setLoading(false);
     };
@@ -88,19 +81,15 @@ const UserManagement = () => {
                 return;
             }
 
-            const result = await createBulkUsers(usersArray);
-            if (result.error) {
-                setError(result.error);
-            } else {
-                setSuccess(`Bulk creation completed! ${result.data.createdUsers.length} users created.`);
-                if (result.data.errors.length > 0) {
-                    setError(`${result.data.errors.length} errors occurred. Check console for details.`);
-                    console.log('Bulk creation errors:', result.data.errors);
-                }
-                setBulkUsers('');
-                setShowBulkModal(false);
-                loadUsers();
+            const result = await usersService.createBulk(usersArray);
+            setSuccess(`Bulk creation completed! ${result.createdUsers?.length || usersArray.length} users created.`);
+            if (result.errors && result.errors.length > 0) {
+                setError(`${result.errors.length} errors occurred. Check console for details.`);
+                console.log('Bulk creation errors:', result.errors);
             }
+            setBulkUsers('');
+            setShowBulkModal(false);
+            loadUsers();
         } catch (err) {
             setError('Invalid bulk user format');
         }
@@ -111,12 +100,12 @@ const UserManagement = () => {
         if (!confirm('Are you sure? This will also delete all pelanggan data for this user.')) return;
 
         setLoading(true);
-        const result = await deleteUser(userId);
-        if (result.error) {
-            setError(result.error);
-        } else {
-            setSuccess(`User deleted successfully! ${result.data.deletedPelanggan} pelanggan records also removed.`);
+        try {
+            const result = await usersService.delete(userId);
+            setSuccess(`User deleted successfully! ${result.deletedPelanggan || 0} pelanggan records also removed.`);
             loadUsers();
+        } catch (err) {
+            setError(err.message);
         }
         setLoading(false);
     };
@@ -130,28 +119,28 @@ const UserManagement = () => {
         if (!confirm(`Are you sure you want to delete ${selectedUsers.length} users and all their pelanggan data?`)) return;
 
         setLoading(true);
-        const result = await deleteBulkUsers(selectedUsers);
-        if (result.error) {
-            setError(result.error);
-        } else {
-            setSuccess(`Bulk deletion completed! ${result.data.deletedUsers.length} users deleted, ${result.data.totalDeletedPelanggan} pelanggan records removed.`);
-            if (result.data.errors.length > 0) {
-                setError(`${result.data.errors.length} errors occurred.`);
+        try {
+            const result = await usersService.deleteBulk(selectedUsers);
+            setSuccess(`Bulk deletion completed! ${result.deletedUsers?.length || selectedUsers.length} users deleted, ${result.totalDeletedPelanggan || 0} pelanggan records removed.`);
+            if (result.errors && result.errors.length > 0) {
+                setError(`${result.errors.length} errors occurred.`);
             }
             setSelectedUsers([]);
             loadUsers();
+        } catch (err) {
+            setError(err.message);
         }
         setLoading(false);
     };
 
     const handleToggleStatus = async (userId) => {
         setLoading(true);
-        const result = await toggleUserStatus(userId);
-        if (result.error) {
-            setError(result.error);
-        } else {
-            setSuccess(result.data.message);
+        try {
+            await usersService.toggleStatus(userId);
+            setSuccess('User status updated successfully!');
             loadUsers();
+        } catch (err) {
+            setError(err.message);
         }
         setLoading(false);
     };

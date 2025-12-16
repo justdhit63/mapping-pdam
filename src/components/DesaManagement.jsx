@@ -1,13 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-    getAllDesa,
-    createDesa,
-    updateDesa,
-    deleteDesa,
-    toggleDesaStatus,
-    getDesaStatistics
-} from '../services/desaService';
-import { getAvailableKecamatan } from '../services/kecamatanService.js';
+import { desaService, kecamatanService } from '../services/supabaseServices';
 
 const DesaManagement = () => {
     const [desaData, setDesaData] = useState([]);
@@ -34,14 +26,11 @@ const DesaManagement = () => {
     const loadDesaData = async () => {
         try {
             setLoading(true);
-            const { data, error } = await getAllDesa();
-            if (error) {
-                console.error('Error fetching desa:', error);
-            } else {
-                setDesaData(data);
-            }
+            const data = await desaService.getAll();
+            setDesaData(data || []);
         } catch (error) {
             console.error('Error loading desa data:', error);
+            setDesaData([]);
         } finally {
             setLoading(false);
         }
@@ -49,27 +38,21 @@ const DesaManagement = () => {
 
     const loadStatistics = async () => {
         try {
-            const { data, error } = await getDesaStatistics();
-            if (error) {
-                console.error('Error fetching statistics:', error);
-            } else {
-                setStatistics(data);
-            }
+            const data = await desaService.getStatistics();
+            setStatistics(data);
         } catch (error) {
             console.error('Error loading statistics:', error);
+            setStatistics(null);
         }
     };
 
     const loadKecamatanList = async () => {
         try {
-            const { data, error } = await getAvailableKecamatan();
-            if (error) {
-                console.error('Error fetching kecamatan:', error);
-            } else {
-                setKecamatanList(data || []);
-            }
+            const data = await kecamatanService.getAll();
+            setKecamatanList(data || []);
         } catch (error) {
             console.error('Error loading kecamatan list:', error);
+            setKecamatanList([]);
         }
     };
 
@@ -77,19 +60,15 @@ const DesaManagement = () => {
     const handleCreateDesa = async (e) => {
         e.preventDefault();
         try {
-            const { data, error } = await createDesa(formData);
-            if (error) {
-                alert(`Error: ${error}`);
-            } else {
-                setShowCreateForm(false);
-                setFormData({ nama_desa: '', kecamatan_id: '' });
-                loadDesaData();
-                loadStatistics();
-                alert('Desa created successfully!');
-            }
+            await desaService.create(formData);
+            setShowCreateForm(false);
+            setFormData({ nama_desa: '', kecamatan_id: '' });
+            loadDesaData();
+            loadStatistics();
+            alert('Desa created successfully!');
         } catch (error) {
             console.error('Error creating desa:', error);
-            alert('Error creating desa');
+            alert('Error creating desa: ' + error.message);
         }
     };
 
@@ -106,35 +85,27 @@ const DesaManagement = () => {
     const handleUpdateDesa = async (e) => {
         e.preventDefault();
         try {
-            const { data, error } = await updateDesa(editingDesa.id, formData);
-            if (error) {
-                alert(`Error: ${error}`);
-            } else {
-                setShowEditForm(false);
-                setEditingDesa(null);
-                setFormData({ nama_desa: '', kecamatan_id: '' });
-                loadDesaData();
-                alert('Desa updated successfully!');
-            }
+            await desaService.update(editingDesa.id, formData);
+            setShowEditForm(false);
+            setEditingDesa(null);
+            setFormData({ nama_desa: '', kecamatan_id: '' });
+            loadDesaData();
+            alert('Desa updated successfully!');
         } catch (error) {
             console.error('Error updating desa:', error);
-            alert('Error updating desa');
+            alert('Error updating desa: ' + error.message);
         }
     };
 
     // Handle toggle desa status
     const handleToggleStatus = async (desaId) => {
         try {
-            const { data, error } = await toggleDesaStatus(desaId);
-            if (error) {
-                alert(`Error: ${error}`);
-            } else {
-                loadDesaData();
-                alert('Desa status updated!');
-            }
+            await desaService.toggleStatus(desaId);
+            loadDesaData();
+            alert('Desa status updated!');
         } catch (error) {
             console.error('Error toggling status:', error);
-            alert('Error updating status');
+            alert('Error updating status: ' + error.message);
         }
     };
 
@@ -142,17 +113,13 @@ const DesaManagement = () => {
     const handleDeleteDesa = async (desaId, desaName) => {
         if (window.confirm(`Are you sure you want to delete "${desaName}"? This will remove desa assignment from all pelanggan in this desa.`)) {
             try {
-                const { data, error } = await deleteDesa(desaId);
-                if (error) {
-                    alert(`Error: ${error}`);
-                } else {
-                    loadDesaData();
-                    loadStatistics();
-                    alert('Desa deleted successfully!');
-                }
+                await desaService.delete(desaId);
+                loadDesaData();
+                loadStatistics();
+                alert('Desa deleted successfully!');
             } catch (error) {
                 console.error('Error deleting desa:', error);
-                alert('Error deleting desa');
+                alert('Error deleting desa: ' + error.message);
             }
         }
     };

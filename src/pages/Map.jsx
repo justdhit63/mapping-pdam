@@ -2,18 +2,18 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 // import L from 'leaflet';
-import { getAllPelanggan } from '../services/pelangganService.js';
-import { getAllPelangganAdmin } from '../services/adminService.js';
-import { getCurrentUser } from '../services/authService.js';
-import apiClient from '../services/apiClient.js';
+import { useAuth } from '../contexts/AuthContext';
+import { 
+    pelangganService, 
+    desaService, 
+    kecamatanService, 
+    rayonService, 
+    cabangService 
+} from '../services/supabaseServices';
 import Header from '../components/Header';
 import Navbar from '../components/Navbar';
 import { FaSearch, FaTimes, FaCrown, FaFilter, FaSpinner, FaUsers } from 'react-icons/fa'
 import CustomerMarker from '../components/CustomMarker';
-import { getAvailableDesa } from '../services/desaService.js';
-import { getKecamatanByDesaId } from '../services/kecamatanService.js';
-import rayonService from '../services/rayonService.js';
-import { getAvailableCabang } from '../services/pelangganService.js';
 
 function FitBounds({ points }) {
     const map = useMap();
@@ -41,13 +41,13 @@ function FlyToLocation({ position }) {
 }
 
 const Map = () => {
+    const { profile, isAdmin } = useAuth();
     const [pelangganList, setPelangganList] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchId, setSearchId] = useState('');
     const [isSearching, setIsSearching] = useState(false);
     const [flyToPosition, setFlyToPosition] = useState(null);
     const [selectedPelanggan, setSelectedPelanggan] = useState(null);
-    const [user, setUser] = useState(null);
     const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'aktif', 'tidak aktif'
 
     // Location filter lists & selections
@@ -61,35 +61,18 @@ const Map = () => {
     const [selectedRayon, setSelectedRayon] = useState('');
     const [selectedCabang, setSelectedCabang] = useState('');
 
-    useEffect(() => {
-        const fetchCurrentUser = async () => {
-            try {
-                const currentUser = await getCurrentUser();
-                setUser(currentUser);
-            } catch (error) {
-                console.error('Error fetching current user:', error);
-                // Fallback ke localStorage jika gagal
-                const { getCurrentUserFromStorage } = await import('../services/authService.js');
-                const fallbackUser = getCurrentUserFromStorage();
-                setUser(fallbackUser);
-            }
-        };
-
-        fetchCurrentUser();
-    }, []);
-
     // Load dropdown lists for filters on mount
     useEffect(() => {
         const loadLists = async () => {
             try {
-                const desaRes = await getAvailableDesa();
-                if (desaRes?.data) setDesaList(desaRes.data || []);
+                const desaData = await desaService.getAll();
+                setDesaList(desaData || []);
 
-                const rayonRes = await rayonService.getAvailableRayon();
-                if (rayonRes?.success) setRayonList(rayonRes.data || []);
+                const rayonData = await rayonService.getAll();
+                setRayonList(rayonData || []);
 
-                const cabangRes = await getAvailableCabang();
-                if (cabangRes?.data) setCabangList(cabangRes.data || []);
+                const cabangData = await cabangService.getAll();
+                setCabangList(cabangData || []);
             } catch (err) {
                 console.error('Error loading filter lists:', err);
             }
@@ -107,11 +90,9 @@ const Map = () => {
                 return;
             }
             try {
-                const res = await getKecamatanByDesaId(selectedDesa);
-                if (res?.data) {
-                    const data = Array.isArray(res.data) ? res.data : [res.data];
-                    setKecamatanList(data || []);
-                }
+                const data = await kecamatanService.getByDesaId(selectedDesa);
+                const kecamatanArray = Array.isArray(data) ? data : [data];
+                setKecamatanList(kecamatanArray || []);
             } catch (err) {
                 console.error('Error loading kecamatan for desa:', err);
                 setKecamatanList([]);
@@ -124,36 +105,22 @@ const Map = () => {
     const fetchAllPelanggan = useCallback(async () => {
         setLoading(true);
         try {
-            let data, error;
-
-            if (user?.role === 'admin') {
-                // Admin dapat melihat semua pelanggan dari semua user
-                const adminResult = await getAllPelangganAdmin();
-                data = adminResult.data;
-                error = adminResult.error;
-            } else {
-                // User biasa hanya melihat pelanggan mereka sendiri
-                const userResult = await getAllPelanggan();
-                data = userResult.data;
-                error = userResult.error;
-            }
-
-            if (error) {
-                console.error('Gagal mengambil data pelanggan:', error);
-            } else {
-                setPelangganList(data || []);
-            }
+            // RLS will automatically filter based on user role
+            // Admin sees all, user sees only their own
+            const data = await pelangganService.getAll();
+            setPelangganList(data || []);
         } catch (error) {
             console.error('Error fetching pelanggan:', error);
+            setPelangganList([]);
         }
         setLoading(false);
-    }, [user]);
+    }, []);
 
     useEffect(() => {
-        if (user) {
+        if (profile) {
             fetchAllPelanggan();
         }
-    }, [fetchAllPelanggan, user]);
+    }, [fetchAllPelanggan, profile]);
 
     const handleSearch = async () => {
         if (!searchId.trim()) {
@@ -249,7 +216,7 @@ const Map = () => {
                     <div className="flex justify-between items-center mb-4">
                         <h1 className="text-2xl font-medium">
                             Peta Sebaran Pelanggan
-                            {user?.role === 'admin' && (
+                            {profile?.role === 'admin' && (
                                 <span className="ml-2 text-yellow-600">
                                     <FaCrown className="inline ml-1" />
                                     Admin View
@@ -264,7 +231,7 @@ const Map = () => {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm text-gray-600">
-                                        {user?.role === 'admin' ? 'Total Pelanggan' : 'Total Pelanggan Saya'}
+                                        {profile?.role === 'admin' ? 'Total Pelanggan' : 'Total Pelanggan Saya'}
                                     </p>
                                     <p className="text-2xl font-bold text-gray-800">{pelangganList.length}</p>
                                 </div>
@@ -431,7 +398,7 @@ const Map = () => {
                                                 pelanggan={pelanggan}
                                                 isSelected={selectedPelanggan?.id === pelanggan.id}
                                                 onClick={handleMarkerClick}
-                                                isAdminView={user?.role === 'admin'}
+                                                isAdminView={profile?.role === 'admin'}
                                                 showStatusColors={true}
                                             />
                                         )
@@ -463,7 +430,7 @@ const Map = () => {
                                         <p><strong>Alamat:</strong> {selectedPelanggan.alamat}</p>
                                         <p><strong>Tanggal Pasang:</strong> {new Date(selectedPelanggan.tanggal_pemasangan).toLocaleDateString('id-ID')}</p>
                                     </div>
-                                    {user?.role !== 'admin' && (
+                                    {profile?.role !== 'admin' && (
                                         <Link to={`/daftar-pelanggan/edit-pelanggan/${selectedPelanggan.id}`} className="mt-4 block w-full text-center bg-yellow-500 text-white font-bold py-2 px-4 rounded-md hover:bg-yellow-600">
                                             Edit Detail Pelanggan
                                         </Link>

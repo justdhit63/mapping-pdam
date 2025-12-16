@@ -1,26 +1,22 @@
-import React, { useEffect, useState } from 'react'
-import { isAuthenticated } from '../services/authService.js';
-import { Navigate, Outlet } from 'react-router-dom';
+import React from 'react'
+import { useAuth } from '../contexts/AuthContext.jsx'
+import { Navigate, Outlet } from 'react-router-dom'
 
 const ProtectedRoute = () => {
-    const [authChecked, setAuthChecked] = useState(false);
-    const [userAuthenticated, setUserAuthenticated] = useState(false);
+    const { user, loading } = useAuth()
 
-    useEffect(() => {
-        const checkAuth = () => {
-            const authenticated = isAuthenticated();
-            setUserAuthenticated(authenticated);
-            setAuthChecked(true);
-        };
-
-        checkAuth();
-    }, []);
-
-    if (!authChecked) {
-        return <div className="">Loading...</div>;
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                    <p className="text-gray-600">Loading...</p>
+                </div>
+            </div>
+        )
     }
 
-    return userAuthenticated ? <Outlet /> : <Navigate to='/' replace />;
+    return user ? <Outlet /> : <Navigate to='/' replace />
 }
 
-export default ProtectedRoute;
+export default ProtectedRoute

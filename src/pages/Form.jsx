@@ -1,13 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import Navbar from '../components/Navbar';
 import Header from '../components/Header';
-import { createPelanggan, getAvailableCabang } from '../services/pelangganService.js';
-import { getAvailableDesa } from '../services/desaService.js';
-import { getKecamatanByDesaId } from '../services/kecamatanService.js';
-import rayonService from '../services/rayonService.js';
-import golonganService from '../services/golonganService.js';
-import kelompokService from '../services/kelompokService.js';
-import { isAuthenticated } from '../services/authService.js';
+import { pelangganService, cabangService, desaService, kecamatanService, rayonService, golonganService, kelompokService } from '../services/supabaseServices.js';
+import { storageService } from '../services/storageService.js';
+import { useAuth } from '../contexts/AuthContext.jsx';
 import { useNavigate } from 'react-router-dom';
 import MapPicker from '../components/MapPicker';
 import { FaFloppyDisk } from 'react-icons/fa6';
@@ -40,7 +36,7 @@ const Form = () => {
         nomer_water_meter: '',
         merk_meter: '',
         ukuran_water_meter: '',
-        kondisi_water_meter: '',
+        kondisi_meter: '',
     });
 
     const [isSearching, setIsSearching] = useState(false);
@@ -54,87 +50,75 @@ const Form = () => {
     const [kelompokList, setKelompokList] = useState([]);
     const [kecamatanData, setKecamatanData] = useState(null);
     const navigate = useNavigate();
+    const { user, profile } = useAuth();
 
     useEffect(() => {
-        if (!isAuthenticated()) {
+        if (!user) {
             navigate('/');
+            return;
         }
         loadCabangList();
         loadDesaList();
         loadRayonList();
         loadGolonganList();
         loadKelompokList();
-    }, [navigate]);
+    }, [user, navigate]);
 
     const loadCabangList = async () => {
         try {
-            const { data, error } = await getAvailableCabang();
-            if (error) {
-                console.error('Error loading cabang:', error);
-            } else {
-                setCabangList(data || []);
-            }
+            const data = await cabangService.getAll();
+            setCabangList(data || []);
         } catch (error) {
-            console.error('Error loading cabang list:', error);
+            console.error('Error loading cabang:', error);
         }
     };
 
     const loadDesaList = async () => {
         try {
-            const { data, error } = await getAvailableDesa();
-            if (error) {
-                console.error('Error loading desa:', error);
-            } else {
-                setDesaList(data || []);
-            }
+            const data = await desaService.getAll();
+            setDesaList(data || []);
         } catch (error) {
-            console.error('Error loading desa list:', error);
+            console.error('Error loading desa:', error);
         }
     };
 
     const loadRayonList = async () => {
         try {
-            const response = await rayonService.getAvailableRayon();
-            if (response.success) {
-                setRayonList(response.data || []);
-            }
+            const data = await rayonService.getAll();
+            setRayonList(data || []);
         } catch (error) {
-            console.error('Error loading rayon list:', error);
+            console.error('Error loading rayon:', error);
         }
     };
 
     const loadGolonganList = async () => {
         try {
-            const response = await golonganService.getAvailableGolongan();
-            if (response.success) {
-                setGolonganList(response.data || []);
-            }
+            const data = await golonganService.getAll();
+            setGolonganList(data || []);
         } catch (error) {
-            console.error('Error loading golongan list:', error);
+            console.error('Error loading golongan:', error);
         }
     };
 
     const loadKelompokList = async () => {
         try {
-            const response = await kelompokService.getKelompokDropdown();
-            if (response.success) {
-                setKelompokList(response.data || []);
-            }
+            const data = await kelompokService.getAll();
+            setKelompokList(data || []);
         } catch (error) {
-            console.error('Error loading kelompok list:', error);
+            console.error('Error loading kelompok:', error);
         }
     };
 
     const loadKecamatanByDesa = async (desaId) => {
         try {
-            const { data, error } = await getKecamatanByDesaId(desaId);
-            if (error) {
-                console.error('Error loading kecamatan:', error);
-                setKecamatanData(null);
-            } else {
-                setKecamatanData(data);
+            const desa = desaList.find(d => d.id === parseInt(desaId));
+            if (desa && desa.kecamatan) {
+                setKecamatanData(desa.kecamatan);
                 // Auto-populate kecamatan_id in form
-                setFormData(prev => ({ ...prev, kecamatan_id: data.id }));
+                setFormData(prev => ({ ...prev, kecamatan_id: desa.kecamatan.id }));
+            } else {
+                setKecamatanData(null);
+                setFormData(prev => ({ ...prev, kecamatan_id: '' }));
             }
         } catch (error) {
             console.error('Error loading kecamatan by desa:', error);
@@ -180,22 +164,29 @@ const Form = () => {
         setLoading(true);
 
         try {
-            // Buat FormData untuk mengirim file dan data lainnya
-            const formDataToSend = new FormData();
-            
-            // Append semua field form
-            Object.keys(formData).forEach(key => {
-                formDataToSend.append(key, formData[key]);
-            });
-            
-            // Append file
-            formDataToSend.append('foto_rumah', file);
-
-            const { data, error } = await createPelanggan(formDataToSend);
-
-            if (error) {
-                throw new Error(error.message || 'Gagal menyimpan data');
+            // Validate file first
+            const validation = storageService.validateFile(file);
+            if (!validation.valid) {
+                alert(validation.error);
+                setLoading(false);
+                return;
             }
+
+            // Upload foto to Supabase Storage
+            const fotoUrl = await storageService.uploadFotoRumah(file);
+
+            // Create pelanggan with uploaded foto URL
+            const pelangganData = {
+                ...formData,
+                user_id: profile.id, // From AuthContext
+                foto_rumah_url: fotoUrl,
+                // Convert numeric fields
+                jumlah_jiwa: formData.jumlah_jiwa ? parseInt(formData.jumlah_jiwa) : null,
+                latitude: formData.latitude ? parseFloat(formData.latitude) : null,
+                longitude: formData.longitude ? parseFloat(formData.longitude) : null,
+            };
+
+            await pelangganService.create(pelangganData);
 
             alert('Data Berhasil Disimpan!');
             
@@ -226,7 +217,7 @@ const Form = () => {
                 nomer_water_meter: '',
                 merk_meter: '',
                 ukuran_water_meter: '',
-                kondisi_water_meter: '',
+                kondisi_meter: '',
             });
 
             setFile(null);
@@ -674,8 +665,8 @@ const Form = () => {
                             <div className="w-full shadow-md">
                                 <h1 className='mb-2'>Kondisi Water Meter</h1>
                                 <textarea
-                                    name="kondisi_water_meter"
-                                    value={formData.kondisi_water_meter}
+                                    name="kondisi_meter"
+                                    value={formData.kondisi_meter}
                                     onChange={handleChange}
                                     className='border w-full border-blue-400 px-4 py-2 rounded-lg'
                                     rows="3"

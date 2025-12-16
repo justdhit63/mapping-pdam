@@ -1,11 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {
-    getAllPelangganAdmin,
-    getAvailableUsers,
-    createPelangganForUser,
-    transferPelanggan,
-    bulkAssignPelanggan
-} from '../services/adminService.js';
+import { pelangganService, usersService } from '../services/supabaseServices';
 
 const PelangganAssignment = () => {
     const [pelangganList, setPelangganList] = useState([]);
@@ -45,20 +39,16 @@ const PelangganAssignment = () => {
     const loadData = async () => {
         setLoading(true);
         
-        // Load pelanggan
-        const pelangganResult = await getAllPelangganAdmin();
-        if (pelangganResult.error) {
-            setError(pelangganResult.error);
-        } else {
-            setPelangganList(pelangganResult.data);
-        }
+        try {
+            // Load pelanggan (RLS allows admin to see all)
+            const pelangganData = await pelangganService.getAll();
+            setPelangganList(pelangganData || []);
 
-        // Load available users
-        const usersResult = await getAvailableUsers();
-        if (usersResult.error) {
-            setError(usersResult.error);
-        } else {
-            setAvailableUsers(usersResult.data);
+            // Load available users
+            const usersData = await usersService.getAll();
+            setAvailableUsers(usersData || []);
+        } catch (err) {
+            setError(err.message);
         }
 
         setLoading(false);
@@ -70,13 +60,13 @@ const PelangganAssignment = () => {
         setError('');
         setSuccess('');
 
-        const result = await createPelangganForUser(formData);
-        if (result.error) {
-            setError(result.error);
-        } else {
-            setSuccess(`Pelanggan berhasil dibuat dan ditugaskan ke ${result.data.assignedTo}!`);
+        try {
+            const result = await pelangganService.createForUser(formData);
+            setSuccess(`Pelanggan berhasil dibuat dan ditugaskan ke ${result.assignedTo || 'user'}!`);
             resetCreateForm();
             loadData();
+        } catch (err) {
+            setError(err.message);
         }
         setLoading(false);
     };
@@ -87,15 +77,15 @@ const PelangganAssignment = () => {
         setError('');
         setSuccess('');
 
-        const result = await transferPelanggan(transferringPelanggan.id, transferData.new_user_id);
-        if (result.error) {
-            setError(result.error);
-        } else {
-            setSuccess(`Pelanggan ${result.data.pelanggan} berhasil dipindahkan dari ${result.data.from} ke ${result.data.to}!`);
+        try {
+            const result = await pelangganService.transfer(transferringPelanggan.id, transferData.new_user_id);
+            setSuccess(`Pelanggan ${result.pelanggan} berhasil dipindahkan dari ${result.from} ke ${result.to}!`);
             setShowTransferModal(false);
             setTransferringPelanggan(null);
             setTransferData({ new_user_id: '' });
             loadData();
+        } catch (err) {
+            setError(err.message);
         }
         setLoading(false);
     };
@@ -110,13 +100,13 @@ const PelangganAssignment = () => {
         setError('');
         setSuccess('');
 
-        const result = await bulkAssignPelanggan(userId, selectedPelanggan);
-        if (result.error) {
-            setError(result.error);
-        } else {
-            setSuccess(`${result.data.affectedRows} pelanggan berhasil ditugaskan ke ${result.data.assignedTo}!`);
+        try {
+            const result = await pelangganService.bulkAssign(userId, selectedPelanggan);
+            setSuccess(`${result.affectedRows || selectedPelanggan.length} pelanggan berhasil ditugaskan ke ${result.assignedTo}!`);
             setSelectedPelanggan([]);
             loadData();
+        } catch (err) {
+            setError(err.message);
         }
         setLoading(false);
     };

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaToggleOn, FaToggleOff, FaUsers, FaMapPin, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
-import rayonService from '../services/rayonService';
+import { rayonService } from '../services/supabaseServices';
 
 const RayonManagement = () => {
     const [rayon, setRayon] = useState([]);
@@ -22,12 +22,11 @@ const RayonManagement = () => {
     const fetchRayon = async () => {
         try {
             setLoading(true);
-            const response = await rayonService.getAllRayon();
-            if (response.success) {
-                setRayon(response.data);
-            }
+            const data = await rayonService.getAll();
+            setRayon(data || []);
         } catch (error) {
             console.error('Error fetching rayon:', error);
+            setRayon([]);
         } finally {
             setLoading(false);
         }
@@ -35,12 +34,11 @@ const RayonManagement = () => {
 
     const fetchStats = async () => {
         try {
-            const response = await rayonService.getRayonStats();
-            if (response.success) {
-                setStats(response.data);
-            }
+            const data = await rayonService.getStatistics();
+            setStats(data || {});
         } catch (error) {
             console.error('Error fetching stats:', error);
+            setStats({});
         }
     };
 
@@ -48,16 +46,16 @@ const RayonManagement = () => {
         e.preventDefault();
         try {
             if (editingRayon) {
-                await rayonService.updateRayon(editingRayon.id, formData);
+                await rayonService.update(editingRayon.id, formData);
             } else {
-                await rayonService.createRayon(formData);
+                await rayonService.create(formData);
             }
             fetchRayon();
             fetchStats();
             resetForm();
         } catch (error) {
             console.error('Error saving rayon:', error);
-            alert('Error saving rayon: ' + (error.response?.data?.message || error.message));
+            alert('Error saving rayon: ' + error.message);
         }
     };
 
@@ -74,7 +72,7 @@ const RayonManagement = () => {
     const handleDelete = async (id) => {
         if (window.confirm('Are you sure you want to delete this rayon?')) {
             try {
-                await rayonService.deleteRayon(id);
+                await rayonService.delete(id);
                 fetchRayon();
                 fetchStats();
             } catch (error) {

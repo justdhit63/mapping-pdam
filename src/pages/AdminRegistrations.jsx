@@ -1,7 +1,7 @@
 // src/pages/AdminRegistrations.jsx
 import React, { useState, useEffect } from 'react';
 import { FaCheck, FaTimes, FaEye, FaUser, FaClock, FaUserPlus, FaMapMarkerAlt, FaPhone, FaEnvelope } from 'react-icons/fa';
-import { getPendingRegistrations, getAllRegistrations, approveRegistration, rejectRegistration } from '../services/registrationService';
+import { registrationsService } from '../services/supabaseServices';
 import Navbar from '../components/Navbar';
 
 const AdminRegistrations = () => {
@@ -33,10 +33,8 @@ const AdminRegistrations = () => {
     const loadRegistrations = async () => {
         try {
             setLoading(true);
-            const result = await getAllRegistrations();
-            if (result.success) {
-                setRegistrations(result.data);
-            }
+            const data = await registrationsService.getAll();
+            setRegistrations(data || []);
         } catch (error) {
             console.error('Error loading registrations:', error);
             alert('Error loading registrations: ' + error.message);
@@ -66,12 +64,10 @@ const AdminRegistrations = () => {
                 kategori: formData.kategori || 'jadwal harian'
             };
 
-            const result = await approveRegistration(selectedRegistration.id, approvalData);
-            if (result.success) {
-                alert('Registrasi berhasil disetujui dan pelanggan telah aktif!');
-                loadRegistrations();
-                closeModal();
-            }
+            await registrationsService.approve(selectedRegistration.id, approvalData);
+            alert('Registrasi berhasil disetujui dan pelanggan telah aktif!');
+            loadRegistrations();
+            closeModal();
         } catch (error) {
             alert('Error approving registration: ' + error.message);
         }
@@ -84,12 +80,10 @@ const AdminRegistrations = () => {
         }
 
         try {
-            const result = await rejectRegistration(selectedRegistration.id, formData.rejected_reason);
-            if (result.success) {
-                alert('Registrasi berhasil ditolak!');
-                loadRegistrations();
-                closeModal();
-            }
+            await registrationsService.reject(selectedRegistration.id, formData.rejected_reason);
+            alert('Registrasi berhasil ditolak!');
+            loadRegistrations();
+            closeModal();
         } catch (error) {
             alert('Error rejecting registration: ' + error.message);
         }
@@ -125,7 +119,7 @@ const AdminRegistrations = () => {
 
     const filteredRegistrations = registrations.filter(reg => {
         if (filter === 'all') return true;
-        return reg.status_registrasi === filter;
+        return reg.status === filter;
     });
 
     const getStatusColor = (status) => {
@@ -138,7 +132,7 @@ const AdminRegistrations = () => {
     };
 
     const getStatusCount = (status) => {
-        return registrations.filter(r => r.status_registrasi === status).length;
+        return registrations.filter(r => r.status === status).length;
     };
 
     return (
@@ -292,9 +286,9 @@ const AdminRegistrations = () => {
                                                 })}
                                             </div>
                                             
-                                            {registration.user_name && (
+                                            {registration.user?.full_name && (
                                                 <div className="mt-1 text-xs text-gray-500">
-                                                    Disubmit oleh: {registration.user_name}
+                                                    Disubmit oleh: {registration.user.full_name}
                                                 </div>
                                             )}
                                         </div>
@@ -307,7 +301,7 @@ const AdminRegistrations = () => {
                                                 >
                                                     <FaEye /> Detail
                                                 </button>
-                                                {registration.status_registrasi === 'pending' && (
+                                                {registration.status === 'pending' && (
                                                     <>
                                                         <button
                                                             onClick={() => openModal(registration, 'approve')}
@@ -360,8 +354,8 @@ const AdminRegistrations = () => {
                                     <div className="md:col-span-2"><strong>Alamat:</strong> {selectedRegistration.alamat}</div>
                                     <div><strong>Latitude:</strong> {selectedRegistration.latitude}</div>
                                     <div><strong>Longitude:</strong> {selectedRegistration.longitude}</div>
-                                    <div><strong>Tanggal Registrasi:</strong> {new Date(selectedRegistration.tanggal_registrasi).toLocaleDateString('id-ID')}</div>
-                                    <div><strong>Disubmit oleh:</strong> {selectedRegistration.user_name || 'Unknown'}</div>
+                                    <div><strong>Tanggal Registrasi:</strong> {new Date(selectedRegistration.created_at).toLocaleDateString('id-ID')}</div>
+                                    <div><strong>Disubmit oleh:</strong> {selectedRegistration.user?.full_name || 'Unknown'}</div>
                                     {selectedRegistration.catatan_registrasi && (
                                         <div className="md:col-span-2"><strong>Catatan:</strong> {selectedRegistration.catatan_registrasi}</div>
                                     )}

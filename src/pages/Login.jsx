@@ -1,37 +1,38 @@
 import React, { useEffect, useState } from 'react'
-import { login, isAuthenticated } from '../services/authService.js'
+import { useAuth } from '../contexts/AuthContext.jsx'
 import { useNavigate } from 'react-router-dom'
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false)
+    const [error, setError] = useState('')
     const navigate = useNavigate();
+    const { signIn, user } = useAuth();
 
     useEffect(() => {
-        const checkSession = () => {
-            if (isAuthenticated()) {
-                navigate('/dashboard', { replace: true });
-            }
-        };
-
-        checkSession();
-    }, [navigate]);
+        // Redirect jika sudah login
+        if (user) {
+            navigate('/dashboard', { replace: true });
+        }
+    }, [user, navigate]);
     
 
     const handleLogin = async (e) => {
         e.preventDefault();
         setLoading(true);
+        setError('');
 
-        const { data, error } = await login(email, password);
-
-        if (error) {
-            alert('Login Gagal: ' + error.message);
-        } else {
-            alert('Login Berhasil!');
+        try {
+            await signIn(email, password);
+            // Navigation akan otomatis via AuthContext
             navigate('/dashboard');
+        } catch (err) {
+            console.error('Login error:', err);
+            setError(err.message || 'Login gagal. Periksa email dan password Anda.');
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     }
 
     return (
@@ -43,6 +44,11 @@ const Login = () => {
                         <h1 className='font-semibold text-2xl text-center'>Sign In</h1>
                         <h5 className="text-gray-500 text-center">Lorem ipsum dolor sit amet.</h5>
                         <div className="border border-gray-300 my-8 w-3/4 mx-auto"></div>
+                        {error && (
+                            <div className="w-3/4 mx-auto mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                                {error}
+                            </div>
+                        )}
                         <form onSubmit={handleLogin} className="w-3/4 mx-auto">
                             <h1 className="">Email</h1>
                             <input

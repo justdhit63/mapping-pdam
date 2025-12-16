@@ -1,13 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaToggleOn, FaToggleOff, FaSave, FaTimes, FaMapMarkedAlt } from 'react-icons/fa';
-import {
-    getAllKecamatan,
-    createKecamatan,
-    updateKecamatan,
-    deleteKecamatan,
-    toggleKecamatanStatus,
-    getKecamatanStatistics
-} from '../services/kecamatanService.js';
+import { kecamatanService } from '../services/supabaseServices';
 
 const KecamatanManagement = () => {
     const [kecamatanList, setKecamatanList] = useState([]);
@@ -39,15 +32,12 @@ const KecamatanManagement = () => {
         setError('');
         
         try {
-            const { data, error } = await getAllKecamatan();
-            if (error) {
-                setError(error);
-            } else {
-                setKecamatanList(data || []);
-            }
+            const data = await kecamatanService.getAll();
+            setKecamatanList(data || []);
         } catch (err) {
             setError('Failed to load kecamatan data');
             console.error('Error loading kecamatan:', err);
+            setKecamatanList([]);
         } finally {
             setLoading(false);
         }
@@ -55,14 +45,11 @@ const KecamatanManagement = () => {
 
     const loadStatistics = async () => {
         try {
-            const { data, error } = await getKecamatanStatistics();
-            if (error) {
-                console.error('Error loading statistics:', error);
-            } else {
-                setStatistics(data || {});
-            }
+            const data = await kecamatanService.getStatistics();
+            setStatistics(data || {});
         } catch (err) {
             console.error('Error loading statistics:', err);
+            setStatistics({});
         }
     };
 
@@ -71,18 +58,14 @@ const KecamatanManagement = () => {
         setError('');
         
         try {
-            const { data, error } = await createKecamatan(formData);
-            if (error) {
-                setError(error);
-            } else {
-                setShowCreateForm(false);
-                setFormData({ nama_kecamatan: '', kode_kecamatan: '' });
-                loadKecamatanData();
-                loadStatistics();
-                alert('Kecamatan berhasil dibuat!');
-            }
+            await kecamatanService.create(formData);
+            setShowCreateForm(false);
+            setFormData({ nama_kecamatan: '', kode_kecamatan: '' });
+            loadKecamatanData();
+            loadStatistics();
+            alert('Kecamatan berhasil dibuat!');
         } catch (err) {
-            setError('Failed to create kecamatan');
+            setError('Failed to create kecamatan: ' + err.message);
             console.error('Error creating kecamatan:', err);
         }
     };
@@ -100,17 +83,13 @@ const KecamatanManagement = () => {
         setError('');
         
         try {
-            const { data, error } = await updateKecamatan(id, editFormData);
-            if (error) {
-                setError(error);
-            } else {
-                setEditingId(null);
-                loadKecamatanData();
-                loadStatistics();
-                alert('Kecamatan berhasil diupdate!');
-            }
+            await kecamatanService.update(id, editFormData);
+            setEditingId(null);
+            loadKecamatanData();
+            loadStatistics();
+            alert('Kecamatan berhasil diupdate!');
         } catch (err) {
-            setError('Failed to update kecamatan');
+            setError('Failed to update kecamatan: ' + err.message);
             console.error('Error updating kecamatan:', err);
         }
     };
@@ -120,16 +99,12 @@ const KecamatanManagement = () => {
             setError('');
             
             try {
-                const { data, error } = await deleteKecamatan(id);
-                if (error) {
-                    setError(error);
-                } else {
-                    loadKecamatanData();
-                    loadStatistics();
-                    alert('Kecamatan berhasil dihapus!');
-                }
+                await kecamatanService.delete(id);
+                loadKecamatanData();
+                loadStatistics();
+                alert('Kecamatan berhasil dihapus!');
             } catch (err) {
-                setError('Failed to delete kecamatan');
+                setError('Failed to delete kecamatan: ' + err.message);
                 console.error('Error deleting kecamatan:', err);
             }
         }
@@ -139,15 +114,11 @@ const KecamatanManagement = () => {
         setError('');
         
         try {
-            const { data, error } = await toggleKecamatanStatus(id);
-            if (error) {
-                setError(error);
-            } else {
-                loadKecamatanData();
-                loadStatistics();
-            }
+            await kecamatanService.toggleStatus(id);
+            loadKecamatanData();
+            loadStatistics();
         } catch (err) {
-            setError('Failed to toggle kecamatan status');
+            setError('Failed to toggle kecamatan status: ' + err.message);
             console.error('Error toggling status:', err);
         }
     };

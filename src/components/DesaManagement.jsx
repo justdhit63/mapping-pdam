@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { desaService, kecamatanService } from '../services/supabaseServices';
+import { desaService, kecamatanService, pelangganService } from '../services/supabaseServices';
+import { FaToggleOn, FaToggleOff } from 'react-icons/fa';
 
 const DesaManagement = () => {
     const [desaData, setDesaData] = useState([]);
@@ -27,7 +28,21 @@ const DesaManagement = () => {
         try {
             setLoading(true);
             const data = await desaService.getAll();
-            setDesaData(data || []);
+            
+            // Fetch all pelanggan to count by desa
+            const pelangganData = await pelangganService.getAll();
+            
+            // Add total_pelanggan count to each desa
+            const dataWithCounts = data.map(desa => {
+                const count = pelangganData.filter(p => p.desa_id === desa.id).length;
+                return {
+                    ...desa,
+                    total_pelanggan: count,
+                    kecamatan_nama: desa.kecamatan?.nama_kecamatan || 'N/A'
+                };
+            });
+            
+            setDesaData(dataWithCounts || []);
         } catch (error) {
             console.error('Error loading desa data:', error);
             setDesaData([]);
@@ -316,13 +331,17 @@ const DesaManagement = () => {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-2 py-1 rounded-full text-xs ${
-                                                desa.is_active 
-                                                    ? 'bg-green-100 text-green-800' 
-                                                    : 'bg-red-100 text-red-800'
-                                            }`}>
-                                                {desa.is_active ? 'Active' : 'Inactive'}
-                                            </span>
+                                            <button
+                                                onClick={() => handleToggleStatus(desa.id)}
+                                                className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+                                                    desa.is_active 
+                                                        ? 'bg-green-100 text-green-800 hover:bg-green-200' 
+                                                        : 'bg-red-100 text-red-800 hover:bg-red-200'
+                                                }`}
+                                            >
+                                                {desa.is_active ? <FaToggleOn /> : <FaToggleOff />}
+                                                {desa.is_active ? 'Aktif' : 'Nonaktif'}
+                                            </button>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {new Date(desa.created_at).toLocaleDateString()}
@@ -334,16 +353,6 @@ const DesaManagement = () => {
                                                     className="bg-blue-100 text-blue-800 px-3 py-1 rounded text-xs hover:bg-blue-200 transition-colors"
                                                 >
                                                     Edit
-                                                </button>
-                                                <button
-                                                    onClick={() => handleToggleStatus(desa.id)}
-                                                    className={`px-3 py-1 rounded text-xs transition-colors ${
-                                                        desa.is_active
-                                                            ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
-                                                            : 'bg-green-100 text-green-800 hover:bg-green-200'
-                                                    }`}
-                                                >
-                                                    {desa.is_active ? 'Deactivate' : 'Activate'}
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeleteDesa(desa.id, desa.nama_desa)}

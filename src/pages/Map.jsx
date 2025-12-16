@@ -422,19 +422,43 @@ const Map = () => {
                                             <FaTimes className="text-gray-500" />
                                         </button>
                                     </div>
-                                    <img src={selectedPelanggan.foto_rumah_url || '/image-break.png'} alt="Foto Rumah" className="w-full h-48 object-cover rounded-md mb-4" />
+                                    <img 
+                                        src={selectedPelanggan.foto_rumah_url || '/image-break.png'} 
+                                        alt="Foto Rumah" 
+                                        className="w-full h-48 object-cover rounded-md mb-4"
+                                        onError={(e) => { e.target.src = '/image-break.png' }}
+                                    />
                                     <div className="space-y-2 text-sm">
                                         <p><strong>ID Pelanggan:</strong> <span className="text-blue-600 font-semibold">{selectedPelanggan.id_pelanggan}</span></p>
                                         <p><strong>Nama:</strong> {selectedPelanggan.nama_pelanggan}</p>
                                         <p><strong>No. Telepon:</strong> {selectedPelanggan.no_telpon}</p>
                                         <p><strong>Alamat:</strong> {selectedPelanggan.alamat}</p>
-                                        <p><strong>Tanggal Pasang:</strong> {new Date(selectedPelanggan.tanggal_pemasangan).toLocaleDateString('id-ID')}</p>
+                                        <p><strong>Jumlah Jiwa:</strong> {selectedPelanggan.jumlah_jiwa || '-'} jiwa</p>
+                                        <p><strong>Jenis Meter:</strong> {selectedPelanggan.jenis_meter || '-'}</p>
+                                        <p><strong>Tanggal Pasang:</strong> {selectedPelanggan.tanggal_pemasangan ? new Date(selectedPelanggan.tanggal_pemasangan).toLocaleDateString('id-ID') : '-'}</p>
+                                        <p><strong>Desa:</strong> {selectedPelanggan.desa?.nama_desa || '-'}</p>
+                                        <p><strong>Kecamatan:</strong> {selectedPelanggan.kecamatan?.nama_kecamatan || '-'}</p>
+                                        <p><strong>Rayon:</strong> {selectedPelanggan.rayon?.nama_rayon || '-'}</p>
+                                        <p><strong>Golongan:</strong> {selectedPelanggan.golongan?.nama_golongan || '-'}</p>
+                                        <p><strong>Status:</strong> 
+                                            <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
+                                                selectedPelanggan.status_pelanggan === 'aktif' 
+                                                    ? 'bg-green-100 text-green-800' 
+                                                    : 'bg-red-100 text-red-800'
+                                            }`}>
+                                                {selectedPelanggan.status_pelanggan || 'aktif'}
+                                            </span>
+                                        </p>
+                                        {selectedPelanggan.latitude && selectedPelanggan.longitude && (
+                                            <p><strong>Koordinat:</strong> {selectedPelanggan.latitude}, {selectedPelanggan.longitude}</p>
+                                        )}
                                     </div>
-                                    {profile?.role !== 'admin' && (
-                                        <Link to={`/daftar-pelanggan/edit-pelanggan/${selectedPelanggan.id}`} className="mt-4 block w-full text-center bg-yellow-500 text-white font-bold py-2 px-4 rounded-md hover:bg-yellow-600">
-                                            Edit Detail Pelanggan
-                                        </Link>
-                                    )}
+                                    <Link 
+                                        to={`/daftar-pelanggan/detail/${selectedPelanggan.id}`} 
+                                        className="mt-4 block w-full text-center bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 transition"
+                                    >
+                                        Detail Data Pelanggan
+                                    </Link>
                                 </div>
                             ) : (
                                 // Tampilan default jika tidak ada pelanggan yang dipilih

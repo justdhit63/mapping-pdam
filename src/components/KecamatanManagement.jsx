@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaToggleOn, FaToggleOff, FaSave, FaTimes, FaMapMarkedAlt } from 'react-icons/fa';
-import { kecamatanService } from '../services/supabaseServices';
+import { kecamatanService, desaService, pelangganService } from '../services/supabaseServices';
 
 const KecamatanManagement = () => {
     const [kecamatanList, setKecamatanList] = useState([]);
@@ -24,7 +24,6 @@ const KecamatanManagement = () => {
 
     useEffect(() => {
         loadKecamatanData();
-        loadStatistics();
     }, []);
 
     const loadKecamatanData = async () => {
@@ -33,23 +32,42 @@ const KecamatanManagement = () => {
         
         try {
             const data = await kecamatanService.getAll();
-            setKecamatanList(data || []);
+            
+            // Fetch desa and pelanggan data to calculate counts
+            const desaData = await desaService.getAll();
+            const pelangganData = await pelangganService.getAll();
+            
+            // Add counts to each kecamatan
+            const dataWithCounts = data.map(kecamatan => {
+                const desaCount = desaData.filter(d => d.kecamatan_id === kecamatan.id).length;
+                const pelangganCount = pelangganData.filter(p => p.kecamatan_id === kecamatan.id).length;
+                return {
+                    ...kecamatan,
+                    desa_count: desaCount,
+                    pelanggan_count: pelangganCount
+                };
+            });
+            
+            setKecamatanList(dataWithCounts || []);
+            
+            // Calculate statistics
+            const totalKecamatan = dataWithCounts.length;
+            const activeKecamatan = dataWithCounts.filter(k => k.is_active).length;
+            const totalDesa = desaData.length;
+            const totalPelanggan = pelangganData.length;
+            
+            setStatistics({
+                total_kecamatan: totalKecamatan,
+                active_kecamatan: activeKecamatan,
+                avg_desa_per_kecamatan: totalKecamatan > 0 ? Math.round(totalDesa / totalKecamatan) : 0,
+                avg_pelanggan_per_kecamatan: totalKecamatan > 0 ? Math.round(totalPelanggan / totalKecamatan) : 0
+            });
         } catch (err) {
             setError('Failed to load kecamatan data');
             console.error('Error loading kecamatan:', err);
             setKecamatanList([]);
         } finally {
             setLoading(false);
-        }
-    };
-
-    const loadStatistics = async () => {
-        try {
-            const data = await kecamatanService.getStatistics();
-            setStatistics(data || {});
-        } catch (err) {
-            console.error('Error loading statistics:', err);
-            setStatistics({});
         }
     };
 
@@ -62,7 +80,6 @@ const KecamatanManagement = () => {
             setShowCreateForm(false);
             setFormData({ nama_kecamatan: '', kode_kecamatan: '' });
             loadKecamatanData();
-            loadStatistics();
             alert('Kecamatan berhasil dibuat!');
         } catch (err) {
             setError('Failed to create kecamatan: ' + err.message);
@@ -86,7 +103,7 @@ const KecamatanManagement = () => {
             await kecamatanService.update(id, editFormData);
             setEditingId(null);
             loadKecamatanData();
-            loadStatistics();
+
             alert('Kecamatan berhasil diupdate!');
         } catch (err) {
             setError('Failed to update kecamatan: ' + err.message);
@@ -101,7 +118,6 @@ const KecamatanManagement = () => {
             try {
                 await kecamatanService.delete(id);
                 loadKecamatanData();
-                loadStatistics();
                 alert('Kecamatan berhasil dihapus!');
             } catch (err) {
                 setError('Failed to delete kecamatan: ' + err.message);
@@ -116,7 +132,6 @@ const KecamatanManagement = () => {
         try {
             await kecamatanService.toggleStatus(id);
             loadKecamatanData();
-            loadStatistics();
         } catch (err) {
             setError('Failed to toggle kecamatan status: ' + err.message);
             console.error('Error toggling status:', err);

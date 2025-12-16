@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaToggleOn, FaToggleOff, FaUsers, FaTags, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
-import { kelompokService } from '../services/supabaseServices';
+import { kelompokService, pelangganService } from '../services/supabaseServices';
 
 const KelompokManagement = () => {
     const [kelompok, setKelompok] = useState([]);
@@ -15,27 +15,43 @@ const KelompokManagement = () => {
 
     useEffect(() => {
         fetchKelompok();
-        fetchStats();
     }, []);
 
     const fetchKelompok = async () => {
         try {
             setLoading(true);
             const data = await kelompokService.getAll();
-            setKelompok(data || []);
+            
+            // Fetch pelanggan data to count by kelompok
+            const pelangganData = await pelangganService.getAll();
+            
+            // Add total_pelanggan count to each kelompok
+            const dataWithCounts = data.map(kelompokItem => {
+                const count = pelangganData.filter(p => p.kelompok_id === kelompokItem.id).length;
+                return {
+                    ...kelompokItem,
+                    total_pelanggan: count
+                };
+            });
+            
+            setKelompok(dataWithCounts || []);
+            
+            // Calculate statistics
+            const totalKelompok = dataWithCounts.length;
+            const activeKelompok = dataWithCounts.filter(k => k.is_active).length;
+            const inactiveKelompok = totalKelompok - activeKelompok;
+            const totalPelangganAssigned = dataWithCounts.reduce((sum, k) => sum + k.total_pelanggan, 0);
+            
+            setStats({
+                total_kelompok: totalKelompok,
+                active_kelompok: activeKelompok,
+                inactive_kelompok: inactiveKelompok,
+                total_pelanggan_assigned: totalPelangganAssigned
+            });
         } catch (error) {
             console.error('Error fetching kelompok:', error);
         } finally {
             setLoading(false);
-        }
-    };
-
-    const fetchStats = async () => {
-        try {
-            const data = await kelompokService.getStatistics();
-            setStats(data || {});
-        } catch (error) {
-            console.error('Error fetching stats:', error);
         }
     };
 
@@ -48,7 +64,6 @@ const KelompokManagement = () => {
                 await kelompokService.create(formData);
             }
             await fetchKelompok();
-            await fetchStats();
             handleCloseModal();
         } catch (error) {
             console.error('Error saving kelompok:', error);
@@ -70,7 +85,6 @@ const KelompokManagement = () => {
             try {
                 await kelompokService.delete(id);
                 await fetchKelompok();
-                await fetchStats();
             } catch (error) {
                 console.error('Error deleting kelompok:', error);
                 alert('Error deleting kelompok: ' + (error.response?.data?.message || error.message));
@@ -82,7 +96,6 @@ const KelompokManagement = () => {
         try {
             await kelompokService.toggleKelompokStatus(id);
             await fetchKelompok();
-            await fetchStats();
         } catch (error) {
             console.error('Error toggling kelompok status:', error);
             alert('Error toggling kelompok status: ' + (error.response?.data?.message || error.message));
@@ -127,7 +140,7 @@ const KelompokManagement = () => {
                                 <FaTags className="text-blue-500 text-xl mr-3" />
                                 <div>
                                     <p className="text-sm text-gray-600">Total Kelompok</p>
-                                    <p className="text-2xl font-bold text-blue-600">{stats.kelompok?.total || 0}</p>
+                                    <p className="text-2xl font-bold text-blue-600">{stats.total_kelompok || 0}</p>
                                 </div>
                             </div>
                         </div>
@@ -137,7 +150,7 @@ const KelompokManagement = () => {
                                 <FaCheckCircle className="text-green-500 text-xl mr-3" />
                                 <div>
                                     <p className="text-sm text-gray-600">Aktif</p>
-                                    <p className="text-2xl font-bold text-green-600">{stats.kelompok?.active || 0}</p>
+                                    <p className="text-2xl font-bold text-green-600">{stats.active_kelompok || 0}</p>
                                 </div>
                             </div>
                         </div>
@@ -147,7 +160,7 @@ const KelompokManagement = () => {
                                 <FaTimesCircle className="text-red-500 text-xl mr-3" />
                                 <div>
                                     <p className="text-sm text-gray-600">Tidak Aktif</p>
-                                    <p className="text-2xl font-bold text-red-600">{stats.kelompok?.inactive || 0}</p>
+                                    <p className="text-2xl font-bold text-red-600">{stats.inactive_kelompok || 0}</p>
                                 </div>
                             </div>
                         </div>
@@ -157,7 +170,7 @@ const KelompokManagement = () => {
                                 <FaUsers className="text-yellow-500 text-xl mr-3" />
                                 <div>
                                     <p className="text-sm text-gray-600">Total Pelanggan</p>
-                                    <p className="text-2xl font-bold text-yellow-600">{stats.pelanggan?.total_pelanggan_assigned || 0}</p>
+                                    <p className="text-2xl font-bold text-yellow-600">{stats.total_pelanggan_assigned || 0}</p>
                                 </div>
                             </div>
                         </div>

@@ -93,6 +93,67 @@ export const pelangganService = {
     if (error) throw error
   },
 
+  // Transfer pelanggan to another user
+  transfer: async (pelangganId, newUserId) => {
+    // Get pelanggan info before transfer
+    const { data: pelanggan, error: fetchError } = await supabase
+      .from('pelanggan')
+      .select('nama_pelanggan, user_id, users:user_id(full_name)')
+      .eq('id', pelangganId)
+      .single()
+
+    if (fetchError) throw fetchError
+
+    // Get new user info
+    const { data: newUser, error: userError } = await supabase
+      .from('users')
+      .select('full_name')
+      .eq('id', newUserId)
+      .single()
+
+    if (userError) throw userError
+
+    // Update pelanggan user_id
+    const { error: updateError } = await supabase
+      .from('pelanggan')
+      .update({ user_id: newUserId })
+      .eq('id', pelangganId)
+
+    if (updateError) throw updateError
+
+    return {
+      pelanggan: pelanggan.nama_pelanggan,
+      from: pelanggan.users?.full_name || 'Unassigned',
+      to: newUser.full_name
+    }
+  },
+
+  // Bulk assign pelanggan to user
+  bulkAssign: async (userId, pelangganIds) => {
+    // Get user info
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('full_name')
+      .eq('id', userId)
+      .single()
+
+    if (userError) throw userError
+
+    // Update multiple pelanggan
+    const { data, error } = await supabase
+      .from('pelanggan')
+      .update({ user_id: userId })
+      .in('id', pelangganIds)
+      .select()
+
+    if (error) throw error
+
+    return {
+      affectedRows: data.length,
+      assignedTo: user.full_name
+    }
+  },
+
   // Get statistics
   getStats: async () => {
     const { data, error } = await supabase
@@ -127,7 +188,6 @@ export const cabangService = {
     const { data, error } = await supabase
       .from('cabang')
       .select('*')
-      .eq('is_active', true)
       .order('nama_unit', { ascending: true })
 
     if (error) throw error
@@ -177,6 +237,26 @@ export const cabangService = {
     if (error) throw error
   },
 
+  toggleStatus: async (id) => {
+    // Get current status
+    const { data: cabang } = await supabase
+      .from('cabang')
+      .select('is_active')
+      .eq('id', id)
+      .single()
+
+    // Toggle status
+    const { data, error } = await supabase
+      .from('cabang')
+      .update({ is_active: !cabang.is_active })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
   getStatistics: async () => {
     const { data, error } = await supabase
       .from('cabang')
@@ -200,7 +280,6 @@ export const kecamatanService = {
     const { data, error } = await supabase
       .from('kecamatan')
       .select('*')
-      .eq('is_active', true)
       .order('nama_kecamatan', { ascending: true })
 
     if (error) throw error
@@ -237,6 +316,26 @@ export const kecamatanService = {
       .eq('id', id)
 
     if (error) throw error
+  },
+
+  toggleStatus: async (id) => {
+    // Get current status
+    const { data: kecamatan } = await supabase
+      .from('kecamatan')
+      .select('is_active')
+      .eq('id', id)
+      .single()
+
+    // Toggle status
+    const { data, error } = await supabase
+      .from('kecamatan')
+      .update({ is_active: !kecamatan.is_active })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
   },
 
   getStatistics: async () => {
@@ -284,7 +383,6 @@ export const desaService = {
     let query = supabase
       .from('desa')
       .select('*, kecamatan:kecamatan_id(id, nama_kecamatan)')
-      .eq('is_active', true)
       .order('nama_desa', { ascending: true })
 
     if (kecamatanId) {
@@ -326,6 +424,26 @@ export const desaService = {
       .eq('id', id)
 
     if (error) throw error
+  },
+
+  toggleStatus: async (id) => {
+    // Get current status
+    const { data: desa } = await supabase
+      .from('desa')
+      .select('is_active')
+      .eq('id', id)
+      .single()
+
+    // Toggle status
+    const { data, error } = await supabase
+      .from('desa')
+      .update({ is_active: !desa.is_active })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
   },
 
   getStatistics: async () => {
@@ -376,7 +494,6 @@ export const rayonService = {
     const { data, error } = await supabase
       .from('rayon')
       .select('*')
-      .eq('is_active', true)
       .order('nama_rayon', { ascending: true })
 
     if (error) throw error
@@ -415,6 +532,26 @@ export const rayonService = {
     if (error) throw error
   },
 
+  toggleRayonStatus: async (id) => {
+    // Get current status
+    const { data: rayon } = await supabase
+      .from('rayon')
+      .select('is_active')
+      .eq('id', id)
+      .single()
+
+    // Toggle status
+    const { data, error } = await supabase
+      .from('rayon')
+      .update({ is_active: !rayon.is_active })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
   getStatistics: async () => {
     const { data, error } = await supabase
       .from('rayon')
@@ -438,7 +575,6 @@ export const golonganService = {
     const { data, error } = await supabase
       .from('golongan')
       .select('*')
-      .eq('is_active', true)
       .order('kode_golongan', { ascending: true })
 
     if (error) throw error
@@ -477,6 +613,26 @@ export const golonganService = {
     if (error) throw error
   },
 
+  toggleGolonganStatus: async (id) => {
+    // Get current status
+    const { data: golongan } = await supabase
+      .from('golongan')
+      .select('is_active')
+      .eq('id', id)
+      .single()
+
+    // Toggle status
+    const { data, error } = await supabase
+      .from('golongan')
+      .update({ is_active: !golongan.is_active })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  },
+
   getStatistics: async () => {
     const { data, error } = await supabase
       .from('golongan')
@@ -500,7 +656,6 @@ export const kelompokService = {
     const { data, error } = await supabase
       .from('kelompok')
       .select('*')
-      .eq('is_active', true)
       .order('kode_kelompok', { ascending: true })
 
     if (error) throw error
@@ -537,6 +692,26 @@ export const kelompokService = {
       .eq('id', id)
 
     if (error) throw error
+  },
+
+  toggleKelompokStatus: async (id) => {
+    // Get current status
+    const { data: kelompok } = await supabase
+      .from('kelompok')
+      .select('is_active')
+      .eq('id', id)
+      .single()
+
+    // Toggle status
+    const { data, error } = await supabase
+      .from('kelompok')
+      .update({ is_active: !kelompok.is_active })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
   },
 
   getStatistics: async () => {
@@ -587,11 +762,15 @@ export const usersService = {
       options: {
         data: {
           full_name: userData.full_name
-        }
+        },
+        emailRedirectTo: undefined // Prevent email confirmation redirect
       }
     })
 
     if (authError) throw authError
+
+    // Wait a bit for auth to complete
+    await new Promise(resolve => setTimeout(resolve, 1000))
 
     // Create user profile in users table
     const { data, error } = await supabase
@@ -602,13 +781,24 @@ export const usersService = {
         full_name: userData.full_name,
         position: userData.position,
         phone: userData.phone,
+        cabang_id: userData.cabang_id || null,
         role: 'user',
         is_active: true
       })
       .select()
       .single()
 
-    if (error) throw error
+    if (error) {
+      console.error('Error creating user profile:', error)
+      // If insert fails, try to delete the auth user to prevent orphan
+      try {
+        await supabase.auth.admin.deleteUser(authData.user.id)
+      } catch (cleanupError) {
+        console.error('Failed to cleanup auth user:', cleanupError)
+      }
+      throw error
+    }
+
     return data
   },
 
@@ -721,6 +911,7 @@ export const usersService = {
     const totalUsers = users.length
     const activeUsers = users.filter(u => u.is_active).length
     const adminUsers = users.filter(u => u.role === 'admin').length
+    const regularUsers = users.filter(u => u.role === 'user').length
     const usersWithCabang = users.filter(u => u.cabang_id).length
 
     const totalPelanggan = pelanggan.length
@@ -732,12 +923,16 @@ export const usersService = {
         active: activeUsers,
         inactive: totalUsers - activeUsers,
         admin: adminUsers,
+        regular: regularUsers,
         withCabang: usersWithCabang
       },
       summary: {
-        totalPelanggan,
-        activePelanggan,
-        inactivePelanggan: totalPelanggan - activePelanggan
+        total_users: totalUsers,
+        total_admins: adminUsers,
+        total_regular_users: regularUsers,
+        total_pelanggan: totalPelanggan,
+        active_pelanggan: activePelanggan,
+        inactive_pelanggan: totalPelanggan - activePelanggan
       }
     }
   },

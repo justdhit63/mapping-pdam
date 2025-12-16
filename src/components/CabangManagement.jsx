@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { cabangService, usersService } from '../services/supabaseServices';
+import { FaToggleOn, FaToggleOff } from 'react-icons/fa';
 
 const CabangManagement = () => {
     const [cabangData, setCabangData] = useState([]);
+    const [allUsers, setAllUsers] = useState([]);
     const [usersWithoutCabang, setUsersWithoutCabang] = useState([]);
     const [loading, setLoading] = useState(false);
     const [showCreateForm, setShowCreateForm] = useState(false);
@@ -26,14 +28,28 @@ const CabangManagement = () => {
     // Load data on component mount
     useEffect(() => {
         loadCabangData();
+        loadAllUsers();
         loadUsersWithoutCabang();
     }, []);
 
     const loadCabangData = async () => {
         try {
             setLoading(true);
-            const data = await cabangService.getAll();
-            setCabangData(data || []);
+            const cabangList = await cabangService.getAll();
+            
+            // Get all users to count per cabang
+            const allUsers = await usersService.getAll();
+            
+            // Calculate total_users for each cabang
+            const cabangWithUserCount = cabangList.map(cabang => {
+                const userCount = allUsers.filter(user => user.cabang_id === cabang.id).length;
+                return {
+                    ...cabang,
+                    total_users: userCount
+                };
+            });
+            
+            setCabangData(cabangWithUserCount || []);
         } catch (error) {
             console.error('Error loading cabang data:', error);
             setCabangData([]);
@@ -49,6 +65,16 @@ const CabangManagement = () => {
         } catch (error) {
             console.error('Error loading unassigned users:', error);
             setUsersWithoutCabang([]);
+        }
+    };
+
+    const loadAllUsers = async () => {
+        try {
+            const data = await usersService.getAll();
+            setAllUsers(data || []);
+        } catch (error) {
+            console.error('Error loading all users:', error);
+            setAllUsers([]);
         }
     };
 
@@ -75,6 +101,7 @@ const CabangManagement = () => {
             setShowAssignForm(false);
             setAssignData({ user_id: '', cabang_id: '' });
             loadCabangData();
+            loadAllUsers();
             loadUsersWithoutCabang();
             alert('User assigned successfully!');
         } catch (error) {
@@ -95,6 +122,7 @@ const CabangManagement = () => {
             setSelectedUsers([]);
             setAssignData({ user_id: '', cabang_id: '' });
             loadCabangData();
+            loadAllUsers();
             loadUsersWithoutCabang();
             alert('Users assigned successfully!');
         } catch (error) {
@@ -244,9 +272,9 @@ const CabangManagement = () => {
                                     required
                                 >
                                     <option value="">Choose a user...</option>
-                                    {usersWithoutCabang.map(user => (
+                                    {allUsers.map(user => (
                                         <option key={user.id} value={user.id}>
-                                            {user.full_name} ({user.email})
+                                            {user.full_name} ({user.email}) {user.cabang_id ? '- Sudah di cabang' : ''}
                                         </option>
                                     ))}
                                 </select>
@@ -289,7 +317,7 @@ const CabangManagement = () => {
                                     Select Multiple Users
                                 </label>
                                 <div className="border border-gray-300 rounded-lg p-2 max-h-32 overflow-y-auto">
-                                    {usersWithoutCabang.map(user => (
+                                    {allUsers.map(user => (
                                         <div key={user.id} className="flex items-center mb-1">
                                             <input
                                                 type="checkbox"
@@ -399,26 +427,20 @@ const CabangManagement = () => {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-2 py-1 rounded-full text-xs ${
-                                                cabang.is_active 
-                                                    ? 'bg-green-100 text-green-800' 
-                                                    : 'bg-red-100 text-red-800'
-                                            }`}>
-                                                {cabang.is_active ? 'Active' : 'Inactive'}
-                                            </span>
+                                            <button
+                                                onClick={() => handleToggleStatus(cabang.id)}
+                                                className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+                                                    cabang.is_active 
+                                                        ? 'bg-green-100 text-green-800 hover:bg-green-200' 
+                                                        : 'bg-red-100 text-red-800 hover:bg-red-200'
+                                                }`}
+                                            >
+                                                {cabang.is_active ? <FaToggleOn /> : <FaToggleOff />}
+                                                {cabang.is_active ? 'Aktif' : 'Nonaktif'}
+                                            </button>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             <div className="flex space-x-2">
-                                                <button
-                                                    onClick={() => handleToggleStatus(cabang.id)}
-                                                    className={`px-3 py-1 rounded text-xs ${
-                                                        cabang.is_active
-                                                            ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
-                                                            : 'bg-green-100 text-green-800 hover:bg-green-200'
-                                                    } transition-colors`}
-                                                >
-                                                    {cabang.is_active ? 'Deactivate' : 'Activate'}
-                                                </button>
                                                 <button
                                                     onClick={() => handleDeleteCabang(cabang.id, cabang.nama_unit)}
                                                     className="bg-red-100 text-red-800 px-3 py-1 rounded text-xs hover:bg-red-200 transition-colors"

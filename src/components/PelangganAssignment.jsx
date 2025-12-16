@@ -46,7 +46,17 @@ const PelangganAssignment = () => {
 
             // Load available users
             const usersData = await usersService.getAll();
-            setAvailableUsers(usersData || []);
+            
+            // Calculate pelanggan count for each user
+            const usersWithStats = usersData.map(user => {
+                const userPelanggan = pelangganData.filter(p => p.user_id === user.id);
+                return {
+                    ...user,
+                    total_pelanggan: userPelanggan.length
+                };
+            });
+            
+            setAvailableUsers(usersWithStats || []);
         } catch (err) {
             setError(err.message);
         }
@@ -156,12 +166,6 @@ const PelangganAssignment = () => {
             <div className="flex justify-between items-center">
                 <h2 className="text-2xl font-bold text-gray-900">Pelanggan Assignment</h2>
                 <div className="space-x-2">
-                    <button
-                        onClick={() => setShowCreateModal(true)}
-                        className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-                    >
-                        Tambah Pelanggan untuk User
-                    </button>
                     {selectedPelanggan.length > 0 && (
                         <div className="inline-block">
                             <select
@@ -261,9 +265,10 @@ const PelangganAssignment = () => {
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex items-center">
                                                     <img 
-                                                        src={pelanggan.foto_rumah_url ? `http://localhost:3001${pelanggan.foto_rumah_url}` : './image-break.png'} 
+                                                        src={pelanggan.foto_rumah_url || './image-break.png'} 
                                                         alt="Foto Rumah" 
-                                                        className="w-10 h-10 object-cover rounded-md mr-3" 
+                                                        className="w-10 h-10 object-cover rounded-md mr-3"
+                                                        onError={(e) => { e.target.src = './image-break.png' }}
                                                     />
                                                     <div>
                                                         <div className="text-sm font-medium text-gray-900">
@@ -278,15 +283,11 @@ const PelangganAssignment = () => {
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div>
                                                     <div className="text-sm font-medium text-gray-900">
-                                                        {pelanggan.user_email}
+                                                        {pelanggan.users?.full_name || pelanggan.users?.email || '-'}
                                                     </div>
-                                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                                        pelanggan.user_role === 'admin' 
-                                                            ? 'bg-yellow-100 text-yellow-800' 
-                                                            : 'bg-blue-100 text-blue-800'
-                                                    }`}>
-                                                        {pelanggan.user_role}
-                                                    </span>
+                                                    <div className="text-xs text-gray-500">
+                                                        {pelanggan.users?.email || '-'}
+                                                    </div>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

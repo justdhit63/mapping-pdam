@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaToggleOn, FaToggleOff, FaUsers, FaTags, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
-import { golonganService } from '../services/supabaseServices';
+import { golonganService, pelangganService } from '../services/supabaseServices';
 
 const GolonganManagement = () => {
     const [golongan, setGolongan] = useState([]);
@@ -15,27 +15,43 @@ const GolonganManagement = () => {
 
     useEffect(() => {
         fetchGolongan();
-        fetchStats();
     }, []);
 
     const fetchGolongan = async () => {
         try {
             setLoading(true);
             const data = await golonganService.getAll();
-            setGolongan(data || []);
+            
+            // Fetch pelanggan data to count by golongan
+            const pelangganData = await pelangganService.getAll();
+            
+            // Add total_pelanggan count to each golongan
+            const dataWithCounts = data.map(golonganItem => {
+                const count = pelangganData.filter(p => p.golongan_id === golonganItem.id).length;
+                return {
+                    ...golonganItem,
+                    total_pelanggan: count
+                };
+            });
+            
+            setGolongan(dataWithCounts || []);
+            
+            // Calculate statistics
+            const totalGolongan = dataWithCounts.length;
+            const activeGolongan = dataWithCounts.filter(g => g.is_active).length;
+            const inactiveGolongan = totalGolongan - activeGolongan;
+            const totalPelangganAssigned = dataWithCounts.reduce((sum, g) => sum + g.total_pelanggan, 0);
+            
+            setStats({
+                total_golongan: totalGolongan,
+                active_golongan: activeGolongan,
+                inactive_golongan: inactiveGolongan,
+                total_pelanggan_assigned: totalPelangganAssigned
+            });
         } catch (error) {
             console.error('Error fetching golongan:', error);
         } finally {
             setLoading(false);
-        }
-    };
-
-    const fetchStats = async () => {
-        try {
-            const data = await golonganService.getStatistics();
-            setStats(data || {});
-        } catch (error) {
-            console.error('Error fetching stats:', error);
         }
     };
 
@@ -48,7 +64,6 @@ const GolonganManagement = () => {
                 await golonganService.create(formData);
             }
             fetchGolongan();
-            fetchStats();
             resetForm();
         } catch (error) {
             console.error('Error saving golongan:', error);
@@ -70,7 +85,6 @@ const GolonganManagement = () => {
             try {
                 await golonganService.delete(id);
                 fetchGolongan();
-                fetchStats();
             } catch (error) {
                 console.error('Error deleting golongan:', error);
                 alert('Error deleting golongan: ' + (error.response?.data?.message || error.message));
@@ -82,7 +96,6 @@ const GolonganManagement = () => {
         try {
             await golonganService.toggleGolonganStatus(id);
             fetchGolongan();
-            fetchStats();
         } catch (error) {
             console.error('Error toggling status:', error);
             alert('Error toggling status: ' + (error.response?.data?.message || error.message));

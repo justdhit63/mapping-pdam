@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaToggleOn, FaToggleOff, FaUsers, FaMapPin, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
-import { rayonService } from '../services/supabaseServices';
+import { rayonService, pelangganService } from '../services/supabaseServices';
 
 const RayonManagement = () => {
     const [rayon, setRayon] = useState([]);
@@ -16,29 +16,44 @@ const RayonManagement = () => {
 
     useEffect(() => {
         fetchRayon();
-        fetchStats();
     }, []);
 
     const fetchRayon = async () => {
         try {
             setLoading(true);
             const data = await rayonService.getAll();
-            setRayon(data || []);
+            
+            // Fetch pelanggan data to count by rayon
+            const pelangganData = await pelangganService.getAll();
+            
+            // Add total_pelanggan count to each rayon
+            const dataWithCounts = data.map(rayonItem => {
+                const count = pelangganData.filter(p => p.rayon_id === rayonItem.id).length;
+                return {
+                    ...rayonItem,
+                    total_pelanggan: count
+                };
+            });
+            
+            setRayon(dataWithCounts || []);
+            
+            // Calculate statistics
+            const totalRayon = dataWithCounts.length;
+            const activeRayon = dataWithCounts.filter(r => r.is_active).length;
+            const inactiveRayon = totalRayon - activeRayon;
+            const totalPelangganAssigned = dataWithCounts.reduce((sum, r) => sum + r.total_pelanggan, 0);
+            
+            setStats({
+                total_rayon: totalRayon,
+                active_rayon: activeRayon,
+                inactive_rayon: inactiveRayon,
+                total_pelanggan_assigned: totalPelangganAssigned
+            });
         } catch (error) {
             console.error('Error fetching rayon:', error);
             setRayon([]);
         } finally {
             setLoading(false);
-        }
-    };
-
-    const fetchStats = async () => {
-        try {
-            const data = await rayonService.getStatistics();
-            setStats(data || {});
-        } catch (error) {
-            console.error('Error fetching stats:', error);
-            setStats({});
         }
     };
 
@@ -51,7 +66,6 @@ const RayonManagement = () => {
                 await rayonService.create(formData);
             }
             fetchRayon();
-            fetchStats();
             resetForm();
         } catch (error) {
             console.error('Error saving rayon:', error);
@@ -74,7 +88,6 @@ const RayonManagement = () => {
             try {
                 await rayonService.delete(id);
                 fetchRayon();
-                fetchStats();
             } catch (error) {
                 console.error('Error deleting rayon:', error);
                 alert('Error deleting rayon: ' + (error.response?.data?.message || error.message));
@@ -86,7 +99,6 @@ const RayonManagement = () => {
         try {
             await rayonService.toggleRayonStatus(id);
             fetchRayon();
-            fetchStats();
         } catch (error) {
             console.error('Error toggling status:', error);
             alert('Error toggling status: ' + (error.response?.data?.message || error.message));

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { usersService } from '../services/supabaseServices';
+import { usersService, cabangService, pelangganService } from '../services/supabaseServices';
 
 const UserManagement = () => {
     const [users, setUsers] = useState([]);
+    const [cabangList, setCabangList] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
@@ -17,7 +18,8 @@ const UserManagement = () => {
         full_name: '',
         position: '',
         phone: '',
-        password: ''
+        password: '',
+        cabang_id: ''
     });
 
     const [bulkUsers, setBulkUsers] = useState('');
@@ -25,19 +27,40 @@ const UserManagement = () => {
     // Load users on component mount
     useEffect(() => {
         loadUsers();
+        loadCabangList();
     }, []);
 
     const loadUsers = async () => {
         setLoading(true);
         try {
-            const data = await usersService.getAll();
-            setUsers(data || []);
+            const usersData = await usersService.getAll();
+            const pelangganData = await pelangganService.getAll();
+            
+            // Calculate total_pelanggan for each user
+            const usersWithPelangganCount = usersData.map(user => {
+                const pelangganCount = pelangganData.filter(p => p.user_id === user.id).length;
+                return {
+                    ...user,
+                    total_pelanggan: pelangganCount
+                };
+            });
+            
+            setUsers(usersWithPelangganCount || []);
             setError('');
         } catch (err) {
             setError(err.message);
             setUsers([]);
         }
         setLoading(false);
+    };
+
+    const loadCabangList = async () => {
+        try {
+            const data = await cabangService.getAll();
+            setCabangList(data || []);
+        } catch (err) {
+            console.error('Error loading cabang:', err);
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -48,7 +71,9 @@ const UserManagement = () => {
 
         try {
             if (editingUser) {
-                await usersService.update(editingUser.id, formData);
+                // When updating, exclude password field as it's only in auth.users
+                const { password, ...updateData } = formData;
+                await usersService.update(editingUser.id, updateData);
                 setSuccess('User updated successfully!');
             } else {
                 await usersService.create(formData);
@@ -151,7 +176,8 @@ const UserManagement = () => {
             full_name: '',
             position: '',
             phone: '',
-            password: ''
+            password: '',
+            cabang_id: ''
         });
         setEditingUser(null);
         setShowAddModal(false);
@@ -163,7 +189,8 @@ const UserManagement = () => {
             full_name: user.full_name,
             position: user.position || '',
             phone: user.phone || '',
-            password: '' // Don't prefill password
+            password: '', // Don't prefill password
+            cabang_id: user.cabang_id || ''
         });
         setEditingUser(user);
         setShowAddModal(true);
@@ -392,17 +419,34 @@ const UserManagement = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700">
-                                    Password {editingUser && '(leave blank to keep current)'}
-                                </label>
-                                <input
-                                    type="password"
-                                    required={!editingUser}
-                                    value={formData.password}
-                                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                                <label className="block text-sm font-medium text-gray-700">Cabang</label>
+                                <select
+                                    value={formData.cabang_id}
+                                    onChange={(e) => setFormData({...formData, cabang_id: e.target.value})}
                                     className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                />
+                                >
+                                    <option value="">Pilih Cabang (Optional)</option>
+                                    {cabangList.map(cabang => (
+                                        <option key={cabang.id} value={cabang.id}>
+                                            {cabang.nama_unit}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
+                            {!editingUser && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">
+                                        Password
+                                    </label>
+                                    <input
+                                        type="password"
+                                        required
+                                        value={formData.password}
+                                        onChange={(e) => setFormData({...formData, password: e.target.value})}
+                                        className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                                    />
+                                </div>
+                            )}
                             <div className="flex justify-end space-x-2 pt-4">
                                 <button
                                     type="button"

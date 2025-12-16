@@ -57,17 +57,17 @@ const Navbar = () => {
         <>
 
             <div className="flex justify-center items-center mx-auto z-50">
-                <nav className={`flex fixed w-4/5 gap-4 lg:gap-2 justify-center xl:gap-20 mx-auto bg-white py-4 rounded-2xl shadow-lg border ${
+                <nav className={`flex fixed w-4/5 gap-2 lg:gap-2 justify-center xl:gap-20 mx-auto bg-white py-3 lg:py-4 rounded-2xl shadow-lg border ${
                     profile?.role === 'admin' ? 'border-teal-300 bg-gradient-to-r from-teal-50 to-white' : 'border-gray-200'
-                } text-lg px-4 mb-8 z-50`}>
+                } text-base lg:text-lg px-3 lg:px-4 mb-8 z-50`}>
                     {/* Logo */}
-                    <div className="flex items-center gap-2">
-                        <img src="/logo.png" alt="" className="w-16 h-16 p-2 rounded-lg border border-gray-200 shadow-md" />
-                        <div className="font-bold tracking-wide text-xl">
+                    <div className="flex items-center gap-1 lg:gap-2">
+                        <img src="/logo.png" alt="" className="w-12 h-12 lg:w-16 lg:h-16 p-1.5 lg:p-2 rounded-lg border border-gray-200 shadow-md" />
+                        <div className="font-bold tracking-wide text-lg lg:text-xl">
                             <h1 className="text-blue-500">PDAM</h1>
-                            <h1 className="text-sm bg-linear-to-r from-green-500 to-teal-500 bg-clip-text text-transparent">Tirta Intan</h1>
+                            <h1 className="text-xs lg:text-sm bg-linear-to-r from-green-500 to-teal-500 bg-clip-text text-transparent">Tirta Intan</h1>
                             {profile?.role === 'admin' && (
-                                <span className="text-xs bg-teal-100 text-teal-800 px-2 py-1 rounded-full font-normal">
+                                <span className="text-[10px] lg:text-xs bg-teal-100 text-teal-800 px-1.5 lg:px-2 py-0.5 lg:py-1 rounded-full font-normal">
                                     Admin Mode
                                 </span>
                             )}
@@ -79,9 +79,9 @@ const Navbar = () => {
                     } shadow-inner rounded-full flex items-center py-2`}>
                         <button
                             onClick={toggleNav}
-                            className="lg:hidden flex items-center justify-center p-2 rounded-full bg-gray-200 shadow-md hover:bg-gray-300 mx-10"
+                            className="lg:hidden flex items-center justify-center p-1.5 lg:p-2 rounded-full bg-gray-200 shadow-md hover:bg-gray-300 mx-8 lg:mx-10"
                         >
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
                             </svg>
                         </button>
@@ -91,7 +91,7 @@ const Navbar = () => {
                                 <NavLink 
                                     key={item.name} 
                                     to={item.path} 
-                                    className={({ isActive }) => `hidden lg:flex justify-center items-center gap-2 font-bold mb-4 p-3 rounded-2xl sm:mb-0 mx-2 text-xs transition-all ${
+                                    className={({ isActive }) => `hidden lg:flex justify-center items-center gap-1 lg:gap-2 font-bold mb-4 p-2 lg:p-3 rounded-2xl sm:mb-0 mx-1 lg:mx-2 text-[11px] lg:text-xs transition-all ${
                                         isActive 
                                             ? profile?.role === 'admin' 
                                                 ? 'text-white bg-gradient-to-r from-teal-400 to-teale-400 shadow-lg' 
@@ -109,23 +109,23 @@ const Navbar = () => {
                     </div>
 
                     {/* Profile */}
-                    <div className="hidden sm:flex gap-4 items-center">
+                    <div className="hidden sm:flex gap-2 lg:gap-4 items-center">
                         <button
                             onClick={handleLogout}
-                            className=" border p-2 rounded-full bg-red-200 cursor-pointer border-gray-200 shadow-md"
+                            className="border p-1.5 lg:p-2 rounded-full bg-red-200 cursor-pointer border-gray-200 shadow-md"
                         >
-                            <FaArrowRightFromBracket className="text-red-500" />
+                            <FaArrowRightFromBracket className="text-sm lg:text-base text-red-500" />
                         </button>
                         {profile?.role === 'admin' && (
-                            <div className="border p-2 rounded-full bg-teal-200 border-gray-200 shadow-md">
-                                <FaCrown className="text-teal-600" />
+                            <div className="border p-1.5 lg:p-2 rounded-full bg-teal-200 border-gray-200 shadow-md">
+                                <FaCrown className="text-sm lg:text-base text-teal-600" />
                             </div>
                         )}
-                        <FaUserCircle className="border-2 rounded-full border-sky-300 p-0.5" size='50' />
-                        <div className="font-medium text-xs w-20 overflow-auto">
+                        <FaUserCircle className="border-2 rounded-full border-sky-300 p-0.5" size='40' />
+                        <div className="font-medium text-[10px] lg:text-xs w-16 lg:w-20 overflow-auto">
                             <h1 className="">{user?.email || 'Loading...'}</h1>
                             {profile?.role && (
-                                <span className={`text-xs px-2 py-1 rounded-full ${
+                                <span className={`text-[10px] lg:text-xs px-1.5 lg:px-2 py-0.5 lg:py-1 rounded-full ${
                                     profile.role === 'admin' ? 'bg-teal-100 text-teal-800' : 'bg-blue-100 text-blue-800'
                                 }`}>
                                     {profile.role}

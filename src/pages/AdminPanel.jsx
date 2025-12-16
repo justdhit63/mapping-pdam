@@ -14,7 +14,7 @@ import { useNavigate } from 'react-router-dom';
 import { FaUsers, FaCrown, FaUser, FaMapMarkedAlt, FaUserCog, FaChartBar, FaUserPlus, FaBuilding, FaTree, FaMapMarked, FaDatabase, FaTags, FaLayerGroup } from 'react-icons/fa';
 
 const AdminPanel = () => {
-    const { isAdmin } = useAuth();
+    const { isAdmin, profile, loading: authLoading } = useAuth();
     const [allPelanggan, setAllPelanggan] = useState([]);
     const [users, setUsers] = useState([]);
     const [userStats, setUserStats] = useState(null);
@@ -24,6 +24,9 @@ const AdminPanel = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
+        // Wait for auth to load
+        if (authLoading) return;
+        
         // Check if user is admin
         if (!isAdmin()) {
             navigate('/dashboard');
@@ -31,7 +34,8 @@ const AdminPanel = () => {
         }
 
         fetchAdminData();
-    }, [navigate, isAdmin]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [authLoading]); // Only run once when auth finishes loading
 
     const fetchAdminData = async () => {
         setLoading(true);
@@ -194,6 +198,7 @@ const AdminPanel = () => {
                             </button>
                             <button
                                 onClick={() => setActiveTab('data')}
+                                data-tab="data"
                                 className={`flex-shrink-0 py-4 px-6 text-sm font-medium border-b-2 ${
                                     activeTab === 'data'
                                         ? 'border-blue-500 text-blue-600'
@@ -334,40 +339,70 @@ const AdminPanel = () => {
                         <h2 className="text-2xl font-bold mb-6">All Pelanggan Data</h2>
                         <div className="space-y-4">
                             {allPelanggan.map((pelanggan) => (
-                                <div key={pelanggan.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-                                    <div className="flex flex-wrap items-center justify-between gap-4">
-                                        <div className="flex items-center gap-4">
-                                            <img 
-                                                src={pelanggan.foto_rumah_url ? `http://localhost:3001${pelanggan.foto_rumah_url}` : './image-break.png'} 
-                                                alt="Foto Rumah" 
-                                                className='w-16 h-16 object-cover rounded-md' 
-                                            />
-                                            <div>
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <h3 className='font-semibold text-lg text-blue-600'>{pelanggan.id_pelanggan}</h3>
-                                                    <span className="text-gray-400">|</span>
-                                                    <h3 className='font-medium text-lg text-gray-800'>{pelanggan.nama_pelanggan}</h3>
-                                                </div>
-                                                <p className='text-gray-600 text-sm'>{pelanggan.alamat}</p>
-                                                <div className="flex items-center gap-2 mt-2">
-                                                    <span className="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded">
-                                                        Owner: {pelanggan.user_email}
-                                                    </span>
-                                                    <span className={`text-xs px-2 py-1 rounded ${
-                                                        pelanggan.user_role === 'admin' 
-                                                            ? 'bg-yellow-100 text-yellow-800' 
-                                                            : 'bg-blue-100 text-blue-800'
-                                                    }`}>
-                                                        {pelanggan.user_role === 'admin' && <FaCrown className="inline mr-1" />}
-                                                        {pelanggan.user_role}
-                                                    </span>
-                                                </div>
+                                <div key={pelanggan.id} className="py-4 px-8 mb-4 rounded-lg border border-gray-200 shadow-lg transition hover:shadow-xl">
+                                    <div className="sm:flex items-center gap-8">
+                                        <img 
+                                            src={pelanggan.foto_rumah_url || './image-break.png'} 
+                                            alt="Foto Rumah" 
+                                            className='w-20 h-20 object-cover rounded-md mx-auto sm:mx-0'
+                                            onError={(e) => { e.target.src = './image-break.png' }}
+                                        />
+                                        <div className="flex-grow my-4 sm:my-0 text-center sm:text-left">
+                                            <div className="flex gap-2 sm:gap-4 items-center mb-2 justify-center sm:justify-start">
+                                                <h2 className='font-semibold text-lg sm:text-xl text-blue-600'>{pelanggan.id_pelanggan}</h2>
+                                                <h2 className='font-medium text-gray-400'>|</h2>
+                                                <h2 className='font-medium text-lg sm:text-xl text-gray-800'>{pelanggan.nama_pelanggan}</h2>
+                                            </div>
+                                            <p className='text-gray-600 mb-2'>{pelanggan.alamat}</p>
+                                            <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+                                                <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-medium">
+                                                    {pelanggan.desa?.nama_desa || 'N/A'}
+                                                </span>
+                                                <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                                                    Status: {pelanggan.status_pelanggan || 'aktif'}
+                                                </span>
                                             </div>
                                         </div>
-                                        <div className="text-right text-sm text-gray-500">
-                                            <p>Created: {new Date(pelanggan.created_at).toLocaleDateString('id-ID')}</p>
-                                            <p>Meter: {pelanggan.jenis_meter}</p>
-                                            <p>Jiwa: {pelanggan.jumlah_jiwa}</p>
+                                        <div className="text-center sm:text-right">
+                                            <div className="text-sm text-gray-500 space-y-1 mb-3">
+                                                <p className="font-medium">Created: {new Date(pelanggan.created_at).toLocaleDateString('id-ID')}</p>
+                                                <p>Meter: {pelanggan.jenis_meter || 'bisa di layani'}</p>
+                                                <p>Jiwa: {pelanggan.jumlah_jiwa || 1}</p>
+                                            </div>
+                                            {/* CRUD Buttons */}
+                                            <div className="flex gap-2 justify-center sm:justify-end">
+                                                <button
+                                                    onClick={() => navigate(`/daftar-pelanggan/detail/${pelanggan.id}`)}
+                                                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1"
+                                                    title="View Detail"
+                                                >
+                                                    <FaUserCog className="text-xs" /> Detail
+                                                </button>
+                                                <button
+                                                    onClick={() => navigate(`/daftar-pelanggan/edit-pelanggan/${pelanggan.id}`)}
+                                                    className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1"
+                                                    title="Edit"
+                                                >
+                                                    <FaUserCog className="text-xs" /> Edit
+                                                </button>
+                                                <button
+                                                    onClick={async () => {
+                                                        if (window.confirm(`Apakah Anda yakin ingin menghapus pelanggan ${pelanggan.nama_pelanggan}?`)) {
+                                                            try {
+                                                                await pelangganService.delete(pelanggan.id);
+                                                                alert('Pelanggan berhasil dihapus!');
+                                                                fetchAdminData(); // Refresh data
+                                                            } catch (error) {
+                                                                alert('Error menghapus pelanggan: ' + error.message);
+                                                            }
+                                                        }
+                                                    }}
+                                                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm flex items-center gap-1"
+                                                    title="Delete"
+                                                >
+                                                    <FaUserCog className="text-xs" /> Delete
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

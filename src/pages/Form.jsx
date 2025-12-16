@@ -164,6 +164,20 @@ const Form = () => {
         setLoading(true);
 
         try {
+            // Validate profile.id with detailed logging
+            console.log('🔍 Checking profile:', profile);
+            console.log('🔍 Profile ID:', profile?.id);
+            console.log('🔍 Profile ID type:', typeof profile?.id);
+            
+            if (!profile || !profile.id) {
+                console.error('❌ Profile validation failed:', { profile, id: profile?.id });
+                alert('Error: User profile tidak ditemukan. Silakan logout dan login kembali.');
+                setLoading(false);
+                return;
+            }
+
+            console.log('✅ Profile validation passed, user_id:', profile.id);
+
             // Validate file first
             const validation = storageService.validateFile(file);
             if (!validation.valid) {

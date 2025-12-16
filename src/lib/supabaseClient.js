@@ -41,33 +41,70 @@ export const getUserProfile = async (authUserId, authUser = null) => {
   try {
     console.log('Fetching profile from database for auth_user_id:', authUserId)
     
-    // TEMPORARY BYPASS: Skip database query dan langsung pakai auth user
-    console.warn('⚠️ BYPASSING DATABASE QUERY - Using auth user data only')
-    
-    console.log('Step 1: Using provided auth user:', authUser)
-    
     if (!authUser) {
       console.error('No auth user provided!')
       throw new Error('No authenticated user provided')
     }
     
-    console.log('Step 2: Creating profile object...')
+    // Try to fetch the actual user from database with timeout
+    console.log('Attempting to fetch user from database...')
     
-    // Return profile from auth metadata
-    const profile = {
-      id: 1, // Temporary ID
-      auth_user_id: authUserId,
-      email: authUser.email || '',
-      full_name: authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'User',
-      role: authUser.email === 'admin@pdam.com' ? 'admin' : 'user', // Check email untuk role
-      cabang_id: null,
-      is_active: true,
-      created_at: authUser.created_at,
-      updated_at: authUser.updated_at || authUser.created_at
+    // Create timeout promise (5 seconds)
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Database query timeout')), 5000)
+    })
+    
+    // Create query promise
+    const queryPromise = supabase
+      .from('users')
+      .select('*')
+      .eq('auth_user_id', authUserId)
+      .single()
+    
+    // Race between query and timeout
+    let userData, userError
+    try {
+      const result = await Promise.race([queryPromise, timeoutPromise])
+      userData = result.data
+      userError = result.error
+    } catch (timeoutError) {
+      console.error('Query timeout or error:', timeoutError)
+      userError = timeoutError
     }
     
-    console.log('Step 3: Profile object created:', profile)
-    console.log('✅ Returning bypass profile:', profile)
+    if (userError) {
+      console.error('Error fetching user from database:', userError)
+      // If user not found in database, create fallback profile with auth data only
+      console.warn('⚠️ User not found in database or query timeout, using fallback profile')
+      const profile = {
+        id: null, // No database ID
+        auth_user_id: authUserId,
+        email: authUser.email || '',
+        full_name: authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'User',
+        role: authUser.email === 'admin@pdam.com' ? 'admin' : 'user',
+        cabang_id: null,
+        is_active: true,
+        created_at: authUser.created_at,
+        updated_at: authUser.updated_at || authUser.created_at
+      }
+      return profile
+    }
+    
+    // User found in database, use actual data
+    console.log('✅ User found in database:', userData)
+    const profile = {
+      id: userData.id, // Real database ID
+      auth_user_id: userData.auth_user_id,
+      email: userData.email,
+      full_name: userData.full_name,
+      role: userData.role,
+      cabang_id: userData.cabang_id,
+      is_active: userData.is_active,
+      created_at: userData.created_at,
+      updated_at: userData.updated_at
+    }
+    
+    console.log('✅ Returning user profile:', profile)
     return profile
     
     /* ORIGINAL DATABASE QUERY - COMMENTED OUT FOR DEBUGGING

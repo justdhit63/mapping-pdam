@@ -2,13 +2,28 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { pelangganService } from '../services/supabaseServices.js';
+import { useAuth } from '../contexts/AuthContext';
 import { FaArrowLeft, FaMapMarkerAlt, FaEdit, FaCalendar, FaPhone, FaHome, FaUsers, FaTint, FaBuilding, FaMapPin } from 'react-icons/fa';
 
 const Detail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { profile } = useAuth();
     const [pelanggan, setPelanggan] = useState(null);
     const [loading, setLoading] = useState(true);
+
+    const handleBack = () => {
+        if (profile?.role === 'admin') {
+            navigate('/admin');
+            // Set active tab to 'data' via URL state
+            setTimeout(() => {
+                const dataTab = document.querySelector('[data-tab="data"]');
+                if (dataTab) dataTab.click();
+            }, 100);
+        } else {
+            navigate('/daftar-pelanggan');
+        }
+    };
 
     useEffect(() => {
         const fetchPelangganDetail = async () => {
@@ -19,14 +34,14 @@ const Detail = () => {
             } catch (error) {
                 console.error('Error fetching pelanggan detail:', error);
                 alert('Error: ' + error.message);
-                navigate('/daftar-pelanggan');
+                handleBack();
             } finally {
                 setLoading(false);
             }
         };
 
         fetchPelangganDetail();
-    }, [id, navigate]);
+    }, [id]);
 
     if (loading) {
         return (
@@ -64,10 +79,10 @@ const Detail = () => {
             <div className="mb-8 mt-16">
                 <div className="flex items-center gap-4 mb-4">
                     <button 
-                        onClick={() => navigate('/daftar-pelanggan')}
+                        onClick={handleBack}
                         className="flex items-center gap-2 text-blue-600 hover:text-blue-800 font-medium"
                     >
-                        <FaArrowLeft /> Kembali ke Daftar
+                        <FaArrowLeft /> {profile?.role === 'admin' ? 'Kembali ke Admin Panel' : 'Kembali ke Daftar'}
                     </button>
                 </div>
                 

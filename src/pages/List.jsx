@@ -178,7 +178,12 @@ const List = () => {
                                         <div key={pelanggan.id} className="py-4 px-8 mb-4 rounded-lg border border-gray-200 shadow-lg transition hover:shadow-xl">
                                             <Link to={`/daftar-pelanggan/detail/${pelanggan.id}`} className="block">
                                                 <div className="sm:flex items-center gap-8 cursor-pointer">
-                                                    <img src={pelanggan.foto_rumah_url ? `http://localhost:3001${pelanggan.foto_rumah_url}` : './image-break.png'} alt="Foto Rumah" className='w-20 h-20 object-cover rounded-md mx-auto sm:mx-0' />
+                                                    <img 
+                                                        src={pelanggan.foto_rumah_url || './image-break.png'} 
+                                                        alt="Foto Rumah" 
+                                                        className='w-20 h-20 object-cover rounded-md mx-auto sm:mx-0'
+                                                        onError={(e) => { e.target.src = './image-break.png' }}
+                                                    />
                                                     <div className="flex-grow my-4 sm:my-0 text-center sm:text-left">
                                                         <div className="flex gap-2 sm:gap-4 items-center mb-2 justify-center sm:justify-start">
                                                             <h2 className='font-semibold text-lg sm:text-xl text-blue-600'>{pelanggan.id_pelanggan}</h2>

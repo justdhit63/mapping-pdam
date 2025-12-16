@@ -1,4 +1,3 @@
-// src/pages/RegistrationForm.jsx
 import React, { useState, useEffect } from 'react';
 import { FaUser, FaPhone, FaHome, FaMapMarkerAlt, FaEnvelope, FaIdCard, FaUsers, FaCamera } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
@@ -6,6 +5,7 @@ import MapPicker from '../components/MapPicker';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../contexts/AuthContext';
 import { registrationsService, desaService, kecamatanService } from '../services/supabaseServices';
+import { storageService } from '../services/storageService';
 
 const RegistrationForm = () => {
     const { profile } = useAuth();
@@ -140,6 +140,11 @@ const RegistrationForm = () => {
                 throw new Error('Mohon lengkapi semua field yang wajib diisi');
             }
 
+            // Validate profile.id
+            if (!profile || !profile.id) {
+                throw new Error('User profile tidak ditemukan. Silakan logout dan login kembali.');
+            }
+
             if (!formData.desa_id || !formData.kecamatan_id) {
                 throw new Error('Mohon pilih desa dan kecamatan');
             }
@@ -160,10 +165,23 @@ const RegistrationForm = () => {
                 throw new Error('Foto KK wajib diupload');
             }
 
+            // Upload files to Supabase Storage
+            console.log('Uploading foto rumah...');
+            const fotoRumahUrl = await storageService.uploadFotoRumah(files.foto_rumah, 'registrations');
+            
+            console.log('Uploading foto KTP...');
+            const fotoKtpUrl = await storageService.uploadFotoRumah(files.foto_ktp, 'registrations');
+            
+            console.log('Uploading foto KK...');
+            const fotoKkUrl = await storageService.uploadFotoRumah(files.foto_kk, 'registrations');
+
             // Create registration data object for Supabase
             const registrationData = {
                 ...formData,
                 user_id: profile.id,
+                foto_rumah_url: fotoRumahUrl,
+                foto_ktp_url: fotoKtpUrl,
+                foto_kk_url: fotoKkUrl,
                 status: 'pending'
             };
 

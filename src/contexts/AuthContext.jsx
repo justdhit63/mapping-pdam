@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { supabase, getUserProfile } from '../lib/supabaseClient'
 
 const AuthContext = createContext({})
@@ -36,6 +36,15 @@ export const AuthProvider = ({ children }) => {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth state changed:', event)
+      
+      // Only reload on actual auth events, not on TOKEN_REFRESHED
+      if (event === 'TOKEN_REFRESHED') {
+        console.log('Token refreshed, keeping existing profile')
+        setSession(session)
+        setUser(session?.user ?? null)
+        return // Don't reload profile
+      }
+      
       setSession(session)
       setUser(session?.user ?? null)
       
@@ -157,10 +166,10 @@ export const AuthProvider = ({ children }) => {
     await loadUserProfile(user.id)
   }
 
-  // Check if user is admin
-  const isAdmin = () => {
+  // Check if user is admin (wrapped in useCallback to prevent re-renders)
+  const isAdmin = useCallback(() => {
     return profile?.role === 'admin'
-  }
+  }, [profile?.role])
 
   const value = {
     user,

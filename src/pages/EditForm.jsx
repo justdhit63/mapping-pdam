@@ -16,6 +16,18 @@ const EditForm = () => {
     const navigate = useNavigate();
     const { user, profile } = useAuth();
 
+    const handleBack = () => {
+        if (profile?.role === 'admin') {
+            navigate('/admin');
+            setTimeout(() => {
+                const dataTab = document.querySelector('[data-tab="data"]');
+                if (dataTab) dataTab.click();
+            }, 100);
+        } else {
+            navigate('/daftar-pelanggan');
+        }
+    };
+
     // State untuk menampung semua data dari form
     const [formData, setFormData] = useState({
         id_pelanggan: '',
@@ -82,7 +94,7 @@ const EditForm = () => {
             } catch (error) {
                 console.error('Error Fetching Data: ', error);
                 alert('Gagal memuat data pelanggan.');
-                navigate('/daftar-pelanggan');
+                handleBack();
             } finally {
                 setLoading(false);
             }
@@ -302,7 +314,7 @@ const EditForm = () => {
             await pelangganService.update(parseInt(id), pelangganData);
 
             alert('Data pelanggan berhasil diperbarui!');
-            navigate('/daftar-pelanggan');
+            handleBack();
 
         } catch (error) {
             console.error('Error updating pelanggan:', error);

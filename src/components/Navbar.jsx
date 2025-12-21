@@ -57,7 +57,7 @@ const Navbar = () => {
         <>
 
             <div className="flex justify-center items-center mx-auto z-50">
-                <nav className={`flex fixed w-4/5 gap-2 lg:gap-2 justify-center xl:gap-20 mx-auto bg-white py-3 lg:py-4 rounded-2xl shadow-lg border ${
+                <nav className={`flex fixed w-4/5 gap-2 lg:gap-2 lg:justify-between xl:justify-center justify-center xl:gap-20 mx-auto bg-white py-3 lg:py-4 rounded-2xl shadow-lg border ${
                     profile?.role === 'admin' ? 'border-teal-300 bg-gradient-to-r from-teal-50 to-white' : 'border-gray-200'
                 } text-base lg:text-lg px-3 lg:px-4 mb-8 z-50`}>
                     {/* Logo */}
@@ -79,9 +79,9 @@ const Navbar = () => {
                     } shadow-inner rounded-full flex items-center py-2`}>
                         <button
                             onClick={toggleNav}
-                            className="lg:hidden flex items-center justify-center p-1.5 lg:p-2 rounded-full bg-gray-200 shadow-md hover:bg-gray-300 mx-8 lg:mx-10"
+                            className="xl:hidden flex items-center justify-center p-1.5 xl:p-2 rounded-full bg-gray-200 shadow-md hover:bg-gray-300 mx-8 xl:mx-10"
                         >
-                            <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <svg className="w-5 h-5 xl:w-6 xl:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16m-7 6h7" />
                             </svg>
                         </button>
@@ -90,8 +90,9 @@ const Navbar = () => {
                             return (
                                 <NavLink 
                                     key={item.name} 
-                                    to={item.path} 
-                                    className={({ isActive }) => `hidden lg:flex justify-center items-center gap-1 lg:gap-2 font-bold mb-4 p-2 lg:p-3 rounded-2xl sm:mb-0 mx-1 lg:mx-2 text-[11px] lg:text-xs transition-all ${
+                                    to={item.path}
+                                    end={item.path === '/admin' || item.path === '/dashboard'}
+                                    className={({ isActive }) => `hidden xl:flex justify-center items-center gap-1 xl:gap-2 font-bold mb-4 p-2 xl:p-3 rounded-2xl sm:mb-0 mx-1 xl:mx-2 text-[11px] xl:text-xs transition-all ${
                                         isActive 
                                             ? profile?.role === 'admin' 
                                                 ? 'text-white bg-gradient-to-r from-teal-400 to-teale-400 shadow-lg' 
@@ -134,7 +135,7 @@ const Navbar = () => {
                         </div>
                     </div>
                 </nav>
-                <div className={`${isNavOpen ? '-translate-y-40' : 'translate-y-16'} lg:hidden border fixed transition-all ease-in-out border-gray-200 ${
+                <div className={`${isNavOpen ? '-translate-y-40' : 'translate-y-16'} xl:hidden border fixed transition-all ease-in-out border-gray-200 ${
                     profile?.role === 'admin' ? 'bg-gradient-to-r from-teal-100 to-gray-100' : 'bg-gray-100'
                 } shadow-inner flex rounded-full items-center py-2`}>
                     {navItems.map((item) => {
@@ -142,7 +143,8 @@ const Navbar = () => {
                         return (
                             <NavLink 
                                 key={item.name} 
-                                to={item.path} 
+                                to={item.path}
+                                end={item.path === '/admin' || item.path === '/dashboard'}
                                 className={({ isActive }) => `flex justify-center items-center gap-1 font-bold rounded-2xl p-2 sm:mb-0 mx-2 text-xs transition-all ${
                                     isActive 
                                         ? profile?.role === 'admin' 

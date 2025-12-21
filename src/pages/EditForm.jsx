@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Navbar from '../components/Navbar';
 import Header from '../components/Header';
 import { FaFloppyDisk } from 'react-icons/fa6';
-import { pelangganService, cabangService, desaService, rayonService, golonganService, kelompokService } from '../services/supabaseServices.js';
+import { pelangganService, cabangService, desaService, kecamatanService, rayonService, golonganService, kelompokService } from '../services/supabaseServices.js';
 import { storageService } from '../services/storageService.js';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -174,13 +174,8 @@ const EditForm = () => {
         if (formData.desa_id) {
             const loadKecamatanByDesa = async (desaId) => {
                 try {
-                    const { data, error } = await getKecamatanByDesaId(desaId);
-                    if (error) {
-                        console.error('Error loading kecamatan:', error);
-                        setKecamatanData(null);
-                    } else {
-                        setKecamatanData(data);
-                    }
+                    const data = await kecamatanService.getByDesaId(desaId);
+                    setKecamatanData(data);
                 } catch (error) {
                     console.error('Error loading kecamatan by desa:', error);
                     setKecamatanData(null);

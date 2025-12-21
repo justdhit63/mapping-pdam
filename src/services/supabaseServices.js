@@ -763,11 +763,21 @@ export const usersService = {
         data: {
           full_name: userData.full_name
         },
-        emailRedirectTo: undefined // Prevent email confirmation redirect
+        emailRedirectTo: undefined, // Prevent email confirmation redirect
+        // Note: To disable email confirmation for admin-created users:
+        // 1. Go to Supabase Dashboard > Authentication > Email Auth
+        // 2. Disable "Enable email confirmations"
+        // OR use Admin API from backend (requires service role key)
       }
     })
 
-    if (authError) throw authError
+    if (authError) {
+      // Check if user already exists but not confirmed
+      if (authError.message.includes('already registered')) {
+        throw new Error('Email sudah terdaftar. Jika ini user baru, silakan konfirmasi email terlebih dahulu atau hubungi administrator.')
+      }
+      throw authError
+    }
 
     // Wait a bit for auth to complete
     await new Promise(resolve => setTimeout(resolve, 1000))

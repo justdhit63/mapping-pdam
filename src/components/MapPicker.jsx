@@ -24,16 +24,12 @@ function LocationMarker({ position, onLocationSelect }) {
 }
 
 const MapPicker = ({ onLocationSelect, latitude, longitude }) => {
-    console.log('MapPicker props:', { latitude, longitude, latType: typeof latitude, lngType: typeof longitude });
-    
     // Convert string values to numbers and provide defaults
     const lat = latitude ? parseFloat(latitude) : -7.2278;
     const lng = longitude ? parseFloat(longitude) : 107.9087;
     
     const initialPosition = [lat, lng];
     const [position, setPosition] = useState(initialPosition);
-    
-    console.log('MapPicker initialPosition:', initialPosition);
 
     useEffect(() => {
         if (latitude && longitude) {
@@ -43,7 +39,6 @@ const MapPicker = ({ onLocationSelect, latitude, longitude }) => {
             // Only update if the values are valid numbers
             if (!isNaN(newLat) && !isNaN(newLng)) {
                 setPosition([newLat, newLng]);
-                console.log('Updated position from props:', [newLat, newLng]);
             }
         }
     }, [latitude, longitude]);

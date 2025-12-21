@@ -39,16 +39,12 @@ export const getCurrentSession = async () => {
 // Helper function untuk get user profile dari tabel users
 export const getUserProfile = async (authUserId, authUser = null) => {
   try {
-    console.log('Fetching profile from database for auth_user_id:', authUserId)
-    
     if (!authUser) {
       console.error('No auth user provided!')
       throw new Error('No authenticated user provided')
     }
     
     // Try to fetch the actual user from database with timeout
-    console.log('Attempting to fetch user from database...')
-    
     // Create timeout promise (5 seconds)
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => reject(new Error('Database query timeout')), 5000)
@@ -91,7 +87,6 @@ export const getUserProfile = async (authUserId, authUser = null) => {
     }
     
     // User found in database, use actual data
-    console.log('✅ User found in database:', userData)
     const profile = {
       id: userData.id, // Real database ID
       auth_user_id: userData.auth_user_id,
@@ -104,14 +99,13 @@ export const getUserProfile = async (authUserId, authUser = null) => {
       updated_at: userData.updated_at
     }
     
-    console.log('✅ Returning user profile:', profile)
     return profile
     
     /* ORIGINAL DATABASE QUERY - COMMENTED OUT FOR DEBUGGING
+    
+    /* ORIGINAL DATABASE QUERY - COMMENTED OUT FOR DEBUGGING
     // Test basic connectivity first
-    console.log('Testing Supabase connection...')
     const testQuery = supabase.from('users').select('count', { count: 'exact', head: true })
-    console.log('Test query created, executing...')
     
     // Manual timeout dengan Promise.race
     const timeoutPromise = new Promise((_, reject) => {
@@ -124,34 +118,7 @@ export const getUserProfile = async (authUserId, authUser = null) => {
       .eq('auth_user_id', authUserId)
       .single()
     
-    console.log('Executing main query with timeout...')
     const { data, error } = await Promise.race([queryPromise, timeoutPromise])
-    
-    console.log('Database query completed:', { data, error })
-    console.log('✅ Returning bypass profile:', profile)
-    return profile
-    
-    /* ORIGINAL DATABASE QUERY - COMMENTED OUT FOR DEBUGGING
-    // Test basic connectivity first
-    console.log('Testing Supabase connection...')
-    const testQuery = supabase.from('users').select('count', { count: 'exact', head: true })
-    console.log('Test query created, executing...')
-    
-    // Manual timeout dengan Promise.race
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Query timeout after 8 seconds')), 8000)
-    })
-    
-    const queryPromise = supabase
-      .from('users')
-      .select('*')
-      .eq('auth_user_id', authUserId)
-      .single()
-    
-    console.log('Executing main query with timeout...')
-    const { data, error } = await Promise.race([queryPromise, timeoutPromise])
-    
-    console.log('Database query completed:', { data, error })
     
     if (error) {
       console.error('Database error:', error)
@@ -176,10 +143,7 @@ export const getUserProfile = async (authUserId, authUser = null) => {
     
     if (!data) {
       // Profile not found - create minimal profile
-      console.warn('Profile not found in database for auth user:', authUserId)
-      
       const { data: { user } } = await supabase.auth.getUser()
-      console.log('Auth user data:', user)
       
       // Return minimal profile object
       const minimalProfile = {
@@ -191,11 +155,9 @@ export const getUserProfile = async (authUserId, authUser = null) => {
         is_active: true
       }
       
-      console.log('Returning minimal profile:', minimalProfile)
       return minimalProfile
     }
     
-    console.log('Profile found:', data)
     return data
     */
   } catch (err) {

@@ -35,11 +35,8 @@ export const AuthProvider = ({ children }) => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event)
-      
       // Only reload on actual auth events, not on TOKEN_REFRESHED
       if (event === 'TOKEN_REFRESHED') {
-        console.log('Token refreshed, keeping existing profile')
         setSession(session)
         setUser(session?.user ?? null)
         return // Don't reload profile
@@ -60,13 +57,9 @@ export const AuthProvider = ({ children }) => {
   }, [])
 
   const loadUserProfile = async (authUserId, authUser) => {
-    console.log('Loading profile for auth user:', authUserId)
     try {
-      console.log('Calling getUserProfile with user object...')
       const userProfile = await getUserProfile(authUserId, authUser)
-      console.log('✅ Profile loaded successfully:', userProfile)
       setProfile(userProfile)
-      console.log('✅ Profile state updated')
     } catch (error) {
       console.error('❌ Error loading user profile:', error)
       // Set minimal profile to prevent infinite loading
@@ -78,9 +71,7 @@ export const AuthProvider = ({ children }) => {
         role: 'user',
         is_active: true
       })
-      console.log('✅ Fallback profile set')
     } finally {
-      console.log('✅ Setting loading to FALSE')
       setLoading(false)
     }
   }

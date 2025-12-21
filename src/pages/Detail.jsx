@@ -124,9 +124,10 @@ const Detail = () => {
                         <h2 className="text-xl font-semibold text-gray-800 mb-4">Foto Rumah</h2>
                         <div className="mb-6">
                             <img 
-                                src={pelanggan.foto_rumah_url ? `http://localhost:3001${pelanggan.foto_rumah_url}` : '/image-break.png'} 
+                                src={pelanggan.foto_rumah_url || '/image-break.png'} 
                                 alt="Foto Rumah" 
                                 className="w-full h-64 object-cover rounded-lg border border-gray-200"
+                                onError={(e) => { e.target.src = '/image-break.png' }}
                             />
                         </div>
                         
@@ -277,32 +278,32 @@ const Detail = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label className="block text-sm font-medium text-gray-600 mb-1">Cabang</label>
-                                <p className="text-gray-800">{pelanggan.cabang_nama || '-'}</p>
+                                <p className="text-gray-800">{pelanggan.cabang?.nama_unit || '-'}</p>
                             </div>
                             
                             <div>
                                 <label className="block text-sm font-medium text-gray-600 mb-1">Desa</label>
-                                <p className="text-gray-800">{pelanggan.nama_desa || '-'}</p>
+                                <p className="text-gray-800">{pelanggan.desa?.nama_desa || '-'}</p>
                             </div>
                             
                             <div>
                                 <label className="block text-sm font-medium text-gray-600 mb-1">Kecamatan</label>
-                                <p className="text-gray-800">{pelanggan.nama_kecamatan || '-'}</p>
+                                <p className="text-gray-800">{pelanggan.kecamatan?.nama_kecamatan || '-'}</p>
                             </div>
                             
                             <div>
                                 <label className="block text-sm font-medium text-gray-600 mb-1">Rayon</label>
-                                <p className="text-gray-800">{pelanggan.nama_rayon || '-'}</p>
+                                <p className="text-gray-800">{pelanggan.rayon?.nama_rayon || '-'}</p>
                             </div>
                             
                             <div>
                                 <label className="block text-sm font-medium text-gray-600 mb-1">Golongan</label>
-                                <p className="text-gray-800">{pelanggan.nama_golongan || '-'}</p>
+                                <p className="text-gray-800">{pelanggan.golongan?.nama_golongan || '-'}</p>
                             </div>
                             
                             <div>
                                 <label className="block text-sm font-medium text-gray-600 mb-1">Kelompok</label>
-                                <p className="text-gray-800">{pelanggan.nama_kelompok || '-'}</p>
+                                <p className="text-gray-800">{pelanggan.kelompok?.nama_kelompok || '-'}</p>
                             </div>
                         </div>
                     </div>

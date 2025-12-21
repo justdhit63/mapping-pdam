@@ -10,8 +10,8 @@ import GolonganManagement from '../components/GolonganManagement';
 import KelompokManagement from '../components/KelompokManagement';
 import { pelangganService, usersService } from '../services/supabaseServices';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { FaUsers, FaCrown, FaUser, FaMapMarkedAlt, FaUserCog, FaChartBar, FaUserPlus, FaBuilding, FaTree, FaMapMarked, FaDatabase, FaTags, FaLayerGroup } from 'react-icons/fa';
+import { useNavigate, Link } from 'react-router-dom';
+import { FaUsers, FaCrown, FaUser, FaMapMarkedAlt, FaUserCog, FaChartBar, FaUserPlus, FaBuilding, FaTree, FaMapMarked, FaDatabase, FaTags, FaLayerGroup, FaFileImport, FaClipboardList } from 'react-icons/fa';
 
 const AdminPanel = () => {
     const { isAdmin, profile, loading: authLoading } = useAuth();
@@ -259,6 +259,35 @@ const AdminPanel = () => {
                                 </div>
                             </div>
                         )}
+
+                        {/* Quick Actions */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                            <Link 
+                                to="/admin/registrations"
+                                className="bg-gradient-to-r from-blue-500 to-blue-600 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow text-white"
+                            >
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h3 className="text-lg font-semibold mb-2">Kelola Registrasi</h3>
+                                        <p className="text-blue-100 text-sm">Lihat dan kelola data pelanggan yang telah mendaftar</p>
+                                    </div>
+                                    <FaClipboardList className="text-5xl opacity-80" />
+                                </div>
+                            </Link>
+
+                            <Link 
+                                to="/admin/import-csv"
+                                className="bg-gradient-to-r from-green-500 to-green-600 p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow text-white"
+                            >
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h3 className="text-lg font-semibold mb-2">Import Data CSV</h3>
+                                        <p className="text-green-100 text-sm">Import data pelanggan dari file CSV secara bulk</p>
+                                    </div>
+                                    <FaFileImport className="text-5xl opacity-80" />
+                                </div>
+                            </Link>
+                        </div>
 
                         {/* User Statistics */}
                         <div className="bg-white p-8 rounded-lg shadow-md">

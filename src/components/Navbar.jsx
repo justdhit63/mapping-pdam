@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { FaChartPie, FaKeyboard, FaList, FaMap, FaUserCircle, FaCrown, FaHome, FaPlus, FaUsers, FaUserPlus, FaClipboardList } from "react-icons/fa";
+import { FaChartPie, FaKeyboard, FaList, FaMap, FaUserCircle, FaCrown, FaHome, FaPlus, FaUsers, FaUserPlus, FaClipboardList, FaFilePdf } from "react-icons/fa";
 import { FaArrowRightFromBracket, FaChartSimple, FaPenToSquare } from "react-icons/fa6";
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from "../contexts/AuthContext.jsx";
@@ -22,6 +22,7 @@ const Navbar = () => {
                     { name: 'Admin Panel', path: '/admin', icon: FaCrown },
                     { name: 'Registrasi', path: '/admin/registrations', icon: FaClipboardList },
                     { name: 'Peta', path: '/peta', icon: FaMap },
+                    { name: 'Export PDF', path: '/export-pdf', icon: FaFilePdf },
                 ];
             } else {
                 // Regular user navigation
@@ -30,6 +31,7 @@ const Navbar = () => {
                     { name: 'Peta', path: '/peta', icon: FaMap },
                     { name: 'Input Data', path: '/input-data', icon: FaPlus },
                     { name: 'Pelanggan', path: '/daftar-pelanggan', icon: FaUsers },
+                    { name: 'Export PDF', path: '/export-pdf', icon: FaFilePdf },
                 ];
             }
 

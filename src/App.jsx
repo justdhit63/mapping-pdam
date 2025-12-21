@@ -20,6 +20,8 @@ import AdminPanel from './pages/AdminPanel'
 import RegistrationForm from './pages/RegistrationForm'
 import AdminRegistrations from './pages/AdminRegistrations.jsx'
 import SelectInput from './pages/SelectInput.jsx'
+import ImportCSV from './pages/ImportCSV.jsx'
+import ExportPDF from './pages/ExportPDF.jsx'
 
 const DaftarPelangganLayout = () => {
   return <Outlet />;
@@ -44,6 +46,8 @@ function App() {
         <Route path="/analitik" element={<Analytic />} />
         <Route path="/admin" element={<AdminPanel />} />
         <Route path="/admin/registrations" element={<AdminRegistrations />} />
+        <Route path="/admin/import-csv" element={<ImportCSV />} />
+        <Route path="/export-pdf" element={<ExportPDF />} />
         <Route path="/edit-profile" element={<Edit />} />
 
         <Route path="/" element={<Dashboard />} />

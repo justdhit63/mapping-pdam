@@ -341,7 +341,7 @@ const Form = () => {
 
                 {/* Form Section */}
                 <div className="pt-16 pb-8">
-                    <h1 className="font-semibold text-2xl">Input Data Pelanggan Baru</h1>
+                    <h1 className="font-semibold text-2xl">Input Data Pelanggan Lama</h1>
                 </div>
                 <div className="bg-white p-8 rounded-2xl border border-gray-300 shadow-lg">
                     <form onSubmit={handleSubmit} className="flex flex-col justify-center w-full">

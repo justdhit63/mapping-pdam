@@ -42,7 +42,7 @@ const Login = () => {
                 <div className="w-full sm:w-3/4 lg:w-1/2 drop-shadow-lg mx-auto bg-white/50 rounded-4xl px-10 py-20 flex items-center justify-center">
                     <div className="w-full">
                         <h1 className='font-semibold text-2xl text-center'>Sign In</h1>
-                        <h5 className="text-gray-500 text-center">Lorem ipsum dolor sit amet.</h5>
+                        <h5 className="text-gray-500 text-center">Welcome Back.</h5>
                         <div className="border border-gray-300 my-8 w-3/4 mx-auto"></div>
                         {error && (
                             <div className="w-3/4 mx-auto mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
